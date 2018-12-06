@@ -56,7 +56,7 @@ export SCM_SERVER=https://gitea.company.com
 If you are using Stash, configure the Stash driver:
 
 ```sh
-export SCM_DRIVER=gitea
+export SCM_DRIVER=stash
 export SCM_SERVER=https://stash.company.com
 export STASH_CONSUMER_KEY=OauthKey
 export STASH_PRIVATE_KEY_FILE=/path/to/private/key.pem
