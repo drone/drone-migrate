@@ -6,6 +6,7 @@ Migration utility will help you migrate from a Drone 0.8.x database to a Drone 1
 
 1. create a full backup of your 0.8.x Drone database
 2. create a new database for your 1.0.x server
+3. do not login to your 1.0 drone instance until this is complete
 
 ## Building the migration utility
 
@@ -22,6 +23,43 @@ export SOURCE_DATABASE_DRIVER=sqlite3|mysql|postgres
 export TARGET_DATABASE_DRIVER=sqlite3|mysql|postgres
 export SOURCE_DATABASE_DATASOURCE=/path/to/old/database.sqlite
 export TARGET_DATABASE_DATASOURCE=/path/to/new/database.sqlite
+```
+
+If you are using GitHub, configure the GitHub driver:
+
+```sh
+export SCM_DRIVER=github
+export SCM_SERVER=https://api.github.com
+```
+
+If you are using GitHub Enterprise, configure the GitHub driver:
+
+```sh
+export SCM_DRIVER=github
+export SCM_SERVER=https://github.company.com/api/v3
+```
+
+If you are using Gogs, configure the Gogs driver:
+
+```sh
+export SCM_DRIVER=gogs
+export SCM_SERVER=https://gogs.company.com
+```
+
+If you are using Gitea, configure the Gitea driver:
+
+```sh
+export SCM_DRIVER=gitea
+export SCM_SERVER=https://gitea.company.com
+```
+
+If you are using Stash, configure the Stash driver:
+
+```sh
+export SCM_DRIVER=gitea
+export SCM_SERVER=https://stash.company.com
+export STASH_CONSUMER_KEY=OauthKey
+export STASH_PRIVATE_KEY_FILE=/path/to/private/key.pem
 ```
 
 ## Create the 1.0 database
@@ -42,6 +80,14 @@ $ drone-migrate migrate-users
 $ drone-migrate migrate-repos
 ```
 
+## Update the repository metadata
+
+Drone 1.0 stores addition repository metadata that needs to be fetched from the source code management system. This additional metadata is required.
+
+```shell
+$ drone-migrate update-repos
+```
+
 ## Migrate secrets from 0.8 to 1.0
 
 TODO
@@ -50,15 +96,9 @@ TODO
 
 TODO
 
-## Update the repository metadata
-
-TODO
-
 ## Re-activate the repositories.
 
 TODO
-
-
 
 <!--
 # Update the repository metadata

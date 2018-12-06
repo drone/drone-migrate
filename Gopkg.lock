@@ -21,7 +21,19 @@
 
 [[projects]]
   name = "github.com/drone/go-scm"
-  packages = ["scm"]
+  packages = [
+    "scm",
+    "scm/driver/gitea",
+    "scm/driver/github",
+    "scm/driver/gitlab",
+    "scm/driver/gogs",
+    "scm/driver/internal/hmac",
+    "scm/driver/internal/null",
+    "scm/driver/stash",
+    "scm/transport/internal",
+    "scm/transport/oauth1",
+    "scm/transport/oauth2"
+  ]
   revision = "e4326a4726b4865ac9274f9b674a81a2333fa0c6"
   version = "v1.0.4"
 
@@ -142,6 +154,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8069ada4347be2f39dfb25953ec8bc6d753be7842e867f37f99c4a91342031c9"
+  inputs-digest = "17824eb33833179fd274fd303858d000250455cccd7fb042b144d19329911087"
   solver-name = "gps-cdcl"
   solver-version = 1

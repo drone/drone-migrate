@@ -107,7 +107,6 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 	var result error
 	for _, repo := range repos {
 		log := logrus.WithField("repository", repo.Slug)
-		log.Debugln("update metadata")
 
 		// 2.a fetch the repository owner
 		user := &UserV1{}
@@ -121,7 +120,12 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 		log = logrus.WithField("owner", user.Login)
 
 		// 2.b fetch the remote repository by name.
-		remoteRepo, _, err := client.Repositories.Find(noContext, scm.Join(repo.Namespace, repo.Name))
+		ctx := scm.WithContext(noContext, &scm.Token{
+			Token:   user.Token,
+			Refresh: user.Refresh,
+			// Expires: user.Expiry,
+		})
+		remoteRepo, _, err := client.Repositories.Find(ctx, scm.Join(repo.Namespace, repo.Name))
 		if err != nil {
 			log.WithError(err).Errorf("failed to get remote repository")
 			multierror.Append(result, err)
@@ -131,15 +135,13 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 		// 2.c update the temporary id for the remote
 		// repository with the value from the remote
 		// system.
-		repo.UID = remoteRepo.ID
-		repo.SSHURL = remoteRepo.CloneSSH
-		err = meddler.Update(db, "repos", repo)
+		_, err = db.Exec(fmt.Sprintf("UPDATE repos SET repo_uid = '%s' WHERE repo_id = %d", remoteRepo.ID, repo.ID))
 		if err != nil {
 			log.WithError(err).Errorf("failed to update metadata")
 			multierror.Append(result, err)
 		}
 
-		log.Debugln("successfully updated metadata")
+		log.Debugln("updated metadata")
 	}
 
 	logrus.Infoln("repository metadata update complete")
@@ -188,7 +190,7 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 		client.SetClient(auther)
 
 		// 2.c activate the repository
-		_, err := client.RepoEnable(repo.Namespace, repo.Name)
+		_, err := client.RepoPost(repo.Namespace, repo.Name)
 		if err != nil {
 			log.WithError(err).Errorf("activation failed")
 			multierror.Append(result, err)
