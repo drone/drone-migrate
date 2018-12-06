@@ -1,58 +1,60 @@
-Migration utility will help you migrate from a Drone 0.8.x database to a Drone 1.0.x database. __IMPORTANT: this migration utility is incomplete. It will not yet generate a working 1.0 database__
+__IMPORTANT: this migration utility is incomplete. It will not yet generate a working 1.0 database__
 
-# Preparing for the migration
+Migration utility will help you migrate from a Drone 0.8.x database to a Drone 1.0.x database.
+
+## Preparing for the migration
 
 1. create a full backup of your 0.8.x Drone database
 2. create a new database for your 1.0.x server
 
-# Building the migration utility
+## Building the migration utility
 
 ```shell
 go get -u github.com/drone/drone-migrate
 ```
 
-# Configuring the migration utility
+## Configuring the migration utility
 
 The migration utility will copy data from your 0.8.x database to your new 1.0.x database. You will need to provide the migration tool with the connection string for both the old and new database.
 
 ```sh
 export SOURCE_DATABASE_DRIVER=sqlite3|mysql|postgres
 export TARGET_DATABASE_DRIVER=sqlite3|mysql|postgres
-export SOURCE_DATABASE_DATASOURCE=/path/to/v0/database.sqlite
-export TARGET_DATABASE_DATASOURCE=/path/to/v1/database.sqlite
-
-# this should be set to your 1.0 server address.
-# the address must omit the trailing slash.
-export DRONE_SERVER=https://drone.company.com
+export SOURCE_DATABASE_DATASOURCE=/path/to/old/database.sqlite
+export TARGET_DATABASE_DATASOURCE=/path/to/new/database.sqlite
 ```
 
-# Create the 1.0 database
+## Create the 1.0 database
 
 ```shell
 $ drone-migrate setup-database
 ```
 
-# Migrate the user data from 0.8 to 1.0
+## Migrate users from 0.8 to 1.0
 
 ```shell
 $ drone-migrate migrate-users
 ```
 
-# Migrate the repository data from 0.8 to 1.0
+## Migrate repositories from 0.8 to 1.0
 
 ```shell
 $ drone-migrate migrate-repos
 ```
 
-# Migrate the repository secrets from 0.8 to 1.0
+## Migrate secrets from 0.8 to 1.0
 
 TODO
 
-# Update the repository metadata
+## Migrate registry credentials from 0.8 to 1.0
 
 TODO
 
-# Re-activate the repositories.
+## Update the repository metadata
+
+TODO
+
+## Re-activate the repositories.
 
 TODO
 
