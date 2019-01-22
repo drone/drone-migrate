@@ -15,8 +15,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var noContext = context.Background()
-
 // MigrateRepos migrates the repositories from the V0
 // database to the V1 database.
 func MigrateRepos(source, target *sql.DB) error {
@@ -120,7 +118,7 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 		log = logrus.WithField("owner", user.Login)
 
 		// 2.b fetch the remote repository by name.
-		ctx := scm.WithContext(noContext, &scm.Token{
+		ctx := scm.WithContext(context.Background(), &scm.Token{
 			Token:   user.Token,
 			Refresh: user.Refresh,
 			// Expires: user.Expiry,
