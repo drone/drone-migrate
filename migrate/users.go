@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/dchest/uniuri"
+	"github.com/sirupsen/logrus"
 
 	"github.com/russross/meddler"
 )

@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/dchest/uniuri"
 	"github.com/drone/drone-go/drone"
 	"github.com/drone/go-scm/scm"
 	"github.com/hashicorp/go-multierror"
 	"github.com/russross/meddler"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
