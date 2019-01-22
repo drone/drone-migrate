@@ -90,37 +90,24 @@ $ drone-migrate update-repos
 
 ## Migrate secrets from 0.8 to 1.0
 
-TODO
+Secrets stored within Drone can be migrated, if you use some external tool to store your secrets like Vault you can skip this step.
+
+```shell
+$ drone-migrate migrate-secrets
+```
 
 ## Migrate registry credentials from 0.8 to 1.0
 
-TODO
-
-## Re-activate the repositories.
-
-TODO
-
-<!--
-# Update the repository metadata
-
-The latest version of Drone captures new fields that need to be retrieved from your source code management system (e.g. GitHub).
+If you haven't used ayn private images within the pipeline you can skip this step, this is only needed if you are using private Docker images for your Drone steps.
 
 ```shell
-$ drone-migrate update-repos
+$ drone-migrate migrate-registires
 ```
 
-# Activate the repositories.
+## Activate the repositories
 
-The final step is to ensure all repositories are activated and have a valid web-hook configured in  the source code management system.
+The final step is to ensure all repositories are activated and have a valid web-hook configured in the source code management system.
 
 ```shell
 $ drone-migrate activate-repos
 ```
--->
-
-<!--
-NOTES:
-
-1. we do not need to pass the drone token, we can get from the database
-2. we do not need to pass the remote credentials, we can also get from the database
--->
