@@ -22,7 +22,7 @@ import (
 	"github.com/drone/go-scm/scm/transport/oauth1"
 	"github.com/drone/go-scm/scm/transport/oauth2"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -30,12 +30,6 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-// TODO(bradrydzewski) update repository secrets
-// TODO(bradrydzewski) update builds
-// TODO(bradrydzewski) update stages
-// TODO(bradrydzewski) update steps
-// TODO(bradrydzewski) update logs
 
 func main() {
 	app := cli.NewApp()
@@ -97,6 +91,7 @@ func main() {
 		if c.GlobalBoolT("debug") {
 			logrus.SetLevel(logrus.DebugLevel)
 		}
+
 		return nil
 	}
 
@@ -109,16 +104,22 @@ func main() {
 					driver     = c.GlobalString("target-database-driver")
 					datasource = c.GlobalString("target-database-datasource")
 				)
+
 				logrus.Debugf("target database driver: %s", driver)
 				logrus.Debugf("target database datasource: %s", datasource)
+
 				target, err := sql.Open(driver, datasource)
+
 				if err != nil {
 					return err
 				}
+
 				err = db.Create(target, driver)
+
 				if err != nil {
 					return err
 				}
+
 				logrus.Infoln("target database created")
 				return nil
 			},
@@ -131,16 +132,20 @@ func main() {
 					c.GlobalString("source-database-driver"),
 					c.GlobalString("source-database-datasource"),
 				)
+
 				if err != nil {
 					return err
 				}
+
 				target, err := sql.Open(
 					c.GlobalString("target-database-driver"),
 					c.GlobalString("target-database-datasource"),
 				)
+
 				if err != nil {
 					return err
 				}
+
 				return migrate.MigrateUsers(source, target)
 			},
 		},
@@ -152,16 +157,20 @@ func main() {
 					c.GlobalString("source-database-driver"),
 					c.GlobalString("source-database-datasource"),
 				)
+
 				if err != nil {
 					return err
 				}
+
 				target, err := sql.Open(
 					c.GlobalString("target-database-driver"),
 					c.GlobalString("target-database-datasource"),
 				)
+
 				if err != nil {
 					return err
 				}
+
 				return migrate.MigrateRepos(source, target)
 			},
 		},
@@ -175,21 +184,75 @@ func main() {
 					provider   = c.GlobalString("scm-driver")
 					server     = c.GlobalString("scm-server")
 				)
+
 				logrus.Debugf("target database driver: %s", driver)
 				logrus.Debugf("target database datasource: %s", datasource)
 				logrus.Debugf("scm driver: %s", provider)
 				logrus.Debugf("scm server: %s", server)
 
 				target, err := sql.Open(driver, datasource)
+
 				if err != nil {
 					return err
 				}
 
 				client, err := createClient(c)
+
 				if err != nil {
 					return err
 				}
+
 				return migrate.UpdateRepoIdentifiers(target, client)
+			},
+		},
+		{
+			Name:  "migrate-secrets",
+			Usage: "migrate drone secrets",
+			Action: func(c *cli.Context) error {
+				source, err := sql.Open(
+					c.GlobalString("source-database-driver"),
+					c.GlobalString("source-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				target, err := sql.Open(
+					c.GlobalString("target-database-driver"),
+					c.GlobalString("target-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.MigrateSecrets(source, target)
+			},
+		},
+		{
+			Name:  "migrate-registries",
+			Usage: "migrate registry credentials",
+			Action: func(c *cli.Context) error {
+				source, err := sql.Open(
+					c.GlobalString("source-database-driver"),
+					c.GlobalString("source-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				target, err := sql.Open(
+					c.GlobalString("target-database-driver"),
+					c.GlobalString("target-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.MigrateRegistries(source, target)
 			},
 		},
 		{
@@ -200,81 +263,101 @@ func main() {
 					c.GlobalString("target-database-driver"),
 					c.GlobalString("target-database-datasource"),
 				)
+
 				if err != nil {
 					return err
 				}
-				client := drone.New(c.GlobalString("drone-server"))
-				return migrate.ActivateRepositories(target, client)
+
+				return migrate.ActivateRepositories(
+					target,
+					drone.New(c.GlobalString("drone-server")),
+				)
 			},
 		},
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
+	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
 	}
 }
 
 func createClient(c *cli.Context) (*scm.Client, error) {
 	server := c.GlobalString("scm-server")
+
 	switch c.GlobalString("scm-driver") {
 	case "gogs":
 		client, err := gogs.New(server)
+
 		if err != nil {
 			return nil, err
 		}
+
 		client.Client = &http.Client{
 			Transport: &oauth2.Transport{
 				Scheme: oauth2.SchemeToken,
 				Source: oauth2.ContextTokenSource(),
 			},
 		}
+
 		return client, nil
 	case "gitea":
 		client, err := gitea.New(server)
+
 		if err != nil {
 			return nil, err
 		}
+
 		client.Client = &http.Client{
 			Transport: &oauth2.Transport{
 				Scheme: oauth2.SchemeToken,
 				Source: oauth2.ContextTokenSource(),
 			},
 		}
+
 		return client, nil
 	case "gitlab":
 		client, err := gitlab.New(server)
+
 		if err != nil {
 			return nil, err
 		}
+
 		client.Client = &http.Client{
 			Transport: &oauth2.Transport{
 				Source: oauth2.ContextTokenSource(),
 			},
 		}
+
 		return client, nil
 	case "github":
 		client, err := github.New(server)
+
 		if err != nil {
 			return nil, err
 		}
+
 		client.Client = &http.Client{
 			Transport: &oauth2.Transport{
 				Source: oauth2.ContextTokenSource(),
 			},
 		}
+
 		return client, nil
 	case "stash":
 		privateKey, err := parsePrivateKeyFile(
 			c.String("stash-private-key-file"),
 		)
+
 		if err != nil {
 			return nil, err
 		}
+
 		client, err := stash.New(server)
+
 		if err != nil {
 			return nil, err
 		}
+
 		client.Client = &http.Client{
 			Transport: &oauth1.Transport{
 				ConsumerKey: c.String("stash-consumer-key"),
@@ -292,9 +375,11 @@ func createClient(c *cli.Context) (*scm.Client, error) {
 // RSA Private Key file encoded in PEM format.
 func parsePrivateKeyFile(path string) (*rsa.PrivateKey, error) {
 	d, err := ioutil.ReadFile(path)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return parsePrivateKey(d)
 }
 
