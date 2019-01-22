@@ -15,27 +15,26 @@ import (
 func MigrateUsers(source, target *sql.DB) error {
 	usersV0 := []*UserV0{}
 
-	// 1. load all users from the V0 database.
-	err := meddler.QueryAll(source, &usersV0, "select * from users")
+	if err := meddler.QueryAll(source, &usersV0, userImportQuery); err != nil {
+		return err
+	}
+
+	logrus.Infof("migrating %d users", len(usersV0))
+
+	tx, err := target.Begin()
+
 	if err != nil {
 		return err
 	}
 
-	// 2. create a database transaction so that we
-	// can rollback if the data migration fails.
-	tx, err := target.Begin()
-	if err != nil {
-		return err
-	}
 	defer tx.Rollback()
 
-	// 3. iterate through the list and convert from
-	// the 0.x to the 1.x structure and insert.
 	for _, userV0 := range usersV0 {
 		log := logrus.WithFields(logrus.Fields{
 			"id":    userV0.ID,
 			"login": userV0.Login,
 		})
+
 		log.Debugln("migrate user")
 
 		userV1 := &UserV1{
@@ -56,11 +55,22 @@ func MigrateUsers(source, target *sql.DB) error {
 			Expiry:    userV0.Expiry,
 			Hash:      uniuri.NewLen(32),
 		}
-		err = meddler.Insert(tx, "users", userV1)
-		if err != nil {
+
+		if err := meddler.Insert(tx, "users", userV1); err != nil {
+			log.WithError(err).Errorln("migration failed")
 			return err
 		}
+
+		log.Debugln("migration complete")
 	}
 
+	logrus.Infoln("migration complete")
 	return tx.Commit()
 }
+
+const userImportQuery = `
+SELECT
+	*
+FROM
+	users
+`

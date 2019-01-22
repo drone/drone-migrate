@@ -20,26 +20,25 @@ import (
 func MigrateRepos(source, target *sql.DB) error {
 	reposV0 := []*RepoV0{}
 
-	// 1. load all repos from the V0 database.
-	err := meddler.QueryAll(source, &reposV0, "select * from repos where repo_user_id > 0")
-	if err != nil {
+	if err := meddler.QueryAll(source, &reposV0, repoImportQuery); err != nil {
 		return err
 	}
 
 	logrus.Infof("migrating %d repositories", len(reposV0))
 
-	// 2. create a database transaction so that we
-	// can rollback if the data migration fails.
 	tx, err := target.Begin()
+
 	if err != nil {
 		return err
 	}
+
 	defer tx.Rollback()
 
-	// 3. iterate through the list and convert from
-	// the 0.x to the 1.x structure and insert.
 	for _, repoV0 := range reposV0 {
-		log := logrus.WithField("repository", repoV0.FullName)
+		log := logrus.WithFields(logrus.Fields{
+			"repo": repoV0.FullName,
+		})
+
 		log.Debugln("migrate repository")
 
 		repoV1 := &RepoV1{
@@ -67,16 +66,15 @@ func MigrateRepos(source, target *sql.DB) error {
 			Version:    1,
 			Signer:     uniuri.NewLen(32),
 			Secret:     uniuri.NewLen(32),
+
+			// We use a temporary repository identifier here.
+			// We need to do a per-repository lookup to get the
+			// actual identifier from the source code management
+			// system.
+			UID: fmt.Sprintf("temp_%d", repoV0.ID),
 		}
 
-		// We use a temporary repository identifier here.
-		// We need to do a per-repository lookup to get the
-		// actual identifier from the source code management
-		// system.
-		repoV1.UID = fmt.Sprintf("temp_%d", repoV0.ID)
-
-		err = meddler.Insert(tx, "repos", repoV1)
-		if err != nil {
+		if err := meddler.Insert(tx, "repos", repoV1); err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
 		}
@@ -84,7 +82,7 @@ func MigrateRepos(source, target *sql.DB) error {
 		log.Debugln("migration complete")
 	}
 
-	logrus.Infof("migration complete")
+	logrus.Infoln("migration complete")
 	return tx.Commit()
 }
 
@@ -93,48 +91,44 @@ func MigrateRepos(source, target *sql.DB) error {
 // value fetched from the source code management system.
 func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 	repos := []*RepoV1{}
+	var result error
 
-	// 1. load all repos from the V1 database.
-	err := meddler.QueryAll(db, &repos, "select * from repos where repo_uid LIKE 'temp_%'")
-	if err != nil {
+	if err := meddler.QueryAll(db, &repos, repoTempQuery); err != nil {
 		return err
 	}
 
-	logrus.Infof("updating repository metadata")
+	logrus.Infoln("updating repository metadata")
 
-	var result error
 	for _, repo := range repos {
-		log := logrus.WithField("repository", repo.Slug)
+		log := logrus.WithFields(logrus.Fields{
+			"repo": repo.Slug,
+		})
 
-		// 2.a fetch the repository owner
 		user := &UserV1{}
-		err = meddler.QueryRow(db, user, fmt.Sprintf("SELECT * FROM users WHERE user_id = %d", repo.UserID))
-		if err != nil {
+
+		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
 			log.WithError(err).Errorf("failed to get repository owner")
 			multierror.Append(result, err)
 			continue
 		}
 
-		log = logrus.WithField("owner", user.Login)
+		log = log.WithField("owner", user.Login)
 
-		// 2.b fetch the remote repository by name.
 		ctx := scm.WithContext(context.Background(), &scm.Token{
 			Token:   user.Token,
 			Refresh: user.Refresh,
 			// Expires: user.Expiry,
 		})
+
 		remoteRepo, _, err := client.Repositories.Find(ctx, scm.Join(repo.Namespace, repo.Name))
+
 		if err != nil {
 			log.WithError(err).Errorf("failed to get remote repository")
 			multierror.Append(result, err)
 			continue
 		}
 
-		// 2.c update the temporary id for the remote
-		// repository with the value from the remote
-		// system.
-		_, err = db.Exec(fmt.Sprintf("UPDATE repos SET repo_uid = '%s' WHERE repo_id = %d", remoteRepo.ID, repo.ID))
-		if err != nil {
+		if _, err := db.Exec(fmt.Sprintf(repoUpdateQuery, remoteRepo.ID, repo.ID)); err != nil {
 			log.WithError(err).Errorf("failed to update metadata")
 			multierror.Append(result, err)
 		}
@@ -150,46 +144,42 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 // This will create new webhooks and populate any empty
 // values (security keys, etc).
 func ActivateRepositories(db *sql.DB, client drone.Client) error {
-	logrus.Infoln("begin repository activation")
-
 	repos := []*RepoV1{}
+	var result error
 
-	err := meddler.QueryAll(db, &repos, "select * from repos")
-	if err != nil {
+	if err := meddler.QueryAll(db, &repos, repoActivateQuery); err != nil {
 		return err
 	}
 
-	var result error
+	logrus.Infoln("begin repository activation")
+
 	for _, repo := range repos {
-		log := logrus.WithField("repository", repo.Slug)
+		log := logrus.WithFields(logrus.Fields{
+			"repo": repo.Slug,
+		})
+
 		log.Debugln("activating repository")
 
-		// 2.a fetch the repository owner
 		user := &UserV1{}
-		err = meddler.QueryRow(db, user, fmt.Sprintf("SELECT * FROM users WHERE user_id = %d", repo.UserID))
-		if err != nil {
+
+		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
 			log.WithError(err).Errorf("failed to get repository owner")
 			multierror.Append(result, err)
 			continue
 		}
 
-		log = logrus.WithField("owner", user.Login)
+		log = log.WithField("owner", user.Login)
 
-		// 2.b configure the drone client to use the
-		// authorization token for the previously fetched
-		// user.
 		config := new(oauth2.Config)
-		auther := config.Client(
+
+		client.SetClient(config.Client(
 			oauth2.NoContext,
 			&oauth2.Token{
 				AccessToken: user.Hash,
 			},
-		)
-		client.SetClient(auther)
+		))
 
-		// 2.c activate the repository
-		_, err := client.RepoPost(repo.Namespace, repo.Name)
-		if err != nil {
+		if _, err := client.RepoPost(repo.Namespace, repo.Name); err != nil {
 			log.WithError(err).Errorf("activation failed")
 			multierror.Append(result, err)
 			continue
@@ -201,3 +191,46 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 	logrus.Infoln("repository activation complete")
 	return result
 }
+
+const repoImportQuery = `
+SELECT
+	*
+FROM
+	repos
+WHERE
+	repo_user_id > 0
+`
+
+const repoTempQuery = `
+SELECT
+	*
+FROM
+	repos
+WHERE
+	repo_uid LIKE 'temp_%'
+`
+
+const userIdentifierQuery = `
+SELECT
+	*
+FROM
+	users
+WHERE
+	user_id = %d
+`
+
+const repoUpdateQuery = `
+UPDATE
+	repos
+SET
+	repo_uid = '%s'
+WHERE
+	repo_id = %d
+`
+
+const repoActivateQuery = `
+SELECT
+	*
+FROM
+	repos
+`
