@@ -1,5 +1,10 @@
 package migrate
 
+import (
+	"encoding/base64"
+	"encoding/json"
+)
+
 type (
 	// UserV0 is a Drone 0.x user.
 	UserV0 struct {
@@ -114,4 +119,47 @@ type (
 		PullRequest     bool   `meddler:"secret_pull_request"`
 		PullRequestPush bool   `meddler:"secret_pull_request_push"`
 	}
+
+	// RegistryV0 is a Drone 0.x registry.
+	RegistryV0 struct {
+		ID           int64  `meddler:"registry_id"`
+		RepoID       int64  `meddler:"registry_repo_id"`
+		RepoFullname string `meddler:"repo_full_name"`
+		Addr         string `meddler:"registry_addr"`
+		Email        string `meddler:"registry_email"`
+		Username     string `meddler:"registry_username"`
+		Password     string `meddler:"registry_password"`
+		Token        string `meddler:"registry_token"`
+	}
+
+	// DockerConfig defines required attributes from Docker registry credentials.
+	DockerConfig struct {
+		AuthConfigs map[string]AuthConfig `json:"auths"`
+	}
+
+	// AuthConfig contains authorization information for connecting to a Registry.
+	AuthConfig struct {
+		Email    string `json:"email,omitempty"`
+		Username string `json:"username,omitempty"`
+		Password string `json:"password,omitempty"`
+		Auth     string `json:"auth,omitempty"`
+	}
 )
+
+func (c AuthConfig) MarshalJSON() ([]byte, error) {
+	result := struct {
+		Auth  string `json:"auth,omitempty"`
+		Email string `json:"email,omitempty"`
+	}{
+		Email: c.Email,
+	}
+
+	credentials := []byte(c.Username + ":" + c.Password)
+
+	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(credentials)))
+	base64.StdEncoding.Encode(encoded, credentials)
+
+	result.Auth = string(encoded)
+
+	return json.Marshal(result)
+}
