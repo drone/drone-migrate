@@ -282,6 +282,31 @@ func main() {
 			},
 		},
 		{
+			Name:  "migrate-logs",
+			Usage: "migrate drone logs",
+			Action: func(c *cli.Context) error {
+				source, err := sql.Open(
+					c.GlobalString("source-database-driver"),
+					c.GlobalString("source-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				target, err := sql.Open(
+					c.GlobalString("target-database-driver"),
+					c.GlobalString("target-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.MigrateLogs(source, target)
+			},
+		},
+		{
 			Name:  "migrate-secrets",
 			Usage: "migrate drone secrets",
 			Action: func(c *cli.Context) error {

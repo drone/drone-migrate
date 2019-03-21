@@ -59,6 +59,9 @@ func MigrateStages(source, target *sql.DB) error {
 			DependsOn: []string{},
 			Labels:    map[string]string{},
 		}
+		if stageV1.Name == "" {
+			stageV1.Name = "defult"
+		}
 
 		err = meddler.Insert(tx, "stages", stageV1)
 		if err != nil {
