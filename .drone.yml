@@ -1,0 +1,24 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: build
+    image: golang:1.12
+    environment:
+      GOOS: linux
+      GOARCH: amd64
+      GO111MODULE: 'on'
+      CGO_ENABLED: 1
+    commands:
+    - go test ./...
+    - go build -ldflags "-extldflags \"-static\"" -o drone-migrate
+
+  - name: publish
+    image: plugins/docker
+    settings:
+      repo: drone/migrate
+      auto_tag: true
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
