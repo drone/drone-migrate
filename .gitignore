@@ -1,0 +1,7 @@
+.env
+*.txt
+*.sqlite
+*.sqlite.new
+*.sql
+*.db
+drone-migrate
