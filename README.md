@@ -62,6 +62,27 @@ export STASH_CONSUMER_KEY=OauthKey
 export STASH_PRIVATE_KEY_FILE=/path/to/private/key.pem
 ```
 
+# Full Migration
+
+
+```
+$ drone-migrate setup-database
+$ drone-migrate migrate-users
+$ drone-migrate migrate-repos
+$ drone-migrate migrate-secrets
+$ drone-migrate migrate-registires
+$ drone-migrate migrate-builds
+$ drone-migrate migrate-stages
+$ drone-migrate migrate-steps
+$ drone-migrate migrate-logs
+$ drone-migrate update-repos
+$ drone-migrate activate-repos
+```
+
+# Execution Individual Commands
+
+This can be helpful if a particular migration step fails. You can safely truncate the impacted database table and then re-try the migration.
+
 ## Create the 1.0 database
 
 ```shell
@@ -80,12 +101,28 @@ $ drone-migrate migrate-users
 $ drone-migrate migrate-repos
 ```
 
-## Update the repository metadata
-
-Drone 1.0 stores addition repository metadata that needs to be fetched from the source code management system. This additional metadata is required.
+## Migrate builds from 0.8 to 1.0
 
 ```shell
-$ drone-migrate update-repos
+$ drone-migrate migrate-builds
+```
+
+## Migrate stages from 0.8 to 1.0
+
+```shell
+$ drone-migrate migrate-stages
+```
+
+## Migrate steps from 0.8 to 1.0
+
+```shell
+$ drone-migrate migrate-steps
+```
+
+## Migrate logs from 0.8 to 1.0
+
+```shell
+$ drone-migrate migrate-logs
 ```
 
 ## Migrate secrets from 0.8 to 1.0
@@ -102,6 +139,14 @@ If you haven't used ayn private images within the pipeline you can skip this ste
 
 ```shell
 $ drone-migrate migrate-registires
+```
+
+## Update the repository metadata
+
+Drone 1.0 stores addition repository metadata that needs to be fetched from the source code management system. This additional metadata is required.
+
+```shell
+$ drone-migrate update-repos
 ```
 
 ## Activate the repositories
