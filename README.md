@@ -70,7 +70,7 @@ $ docker run -e [...] drone/migrate setup-database
 $ docker run -e [...] drone/migrate migrate-users
 $ docker run -e [...] drone/migrate migrate-repos
 $ docker run -e [...] drone/migrate migrate-secrets
-$ docker run -e [...] drone/migrate migrate-registires
+$ docker run -e [...] drone/migrate migrate-registries
 $ docker run -e [...] drone/migrate migrate-builds
 $ docker run -e [...] drone/migrate migrate-stages
 $ docker run -e [...] drone/migrate migrate-steps
