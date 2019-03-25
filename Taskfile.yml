@@ -1,6 +1,10 @@
 version: '2'
 
 tasks:
+  build:
+    cmds:
+      - cmd: GOPATH="" go build
+
   test-postgres:
     env:
       SOURCE_DATABASE_DRIVER: sqlite3
@@ -27,10 +31,44 @@ tasks:
       - cmd: ./drone-migrate migrate-secrets
       - cmd: ./drone-migrate migrate-registries
       - cmd: ./drone-migrate migrate-builds
-      # - cmd: ./drone-migrate migrate-stages
-      # - cmd: ./drone-migrate migrate-steps
-      # - cmd: docker kill postgres
-      #   silent: true
+      - cmd: ./drone-migrate migrate-stages
+      - cmd: ./drone-migrate migrate-steps
+      - cmd: docker kill postgres
+        silent: true
+
+  test-mysql:
+    env:
+      DEBUG: "false"
+      SOURCE_DATABASE_DRIVER: sqlite3
+      TARGET_DATABASE_DRIVER: mysql
+      SOURCE_DATABASE_DATASOURCE: "example/drone.sqlite"
+      TARGET_DATABASE_DATASOURCE: "root@tcp(localhost:3306)/test?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci"
+    cmds:
+      - cmd: docker kill mysql
+        silent: true
+        ignore_error: true
+      - cmd: >               
+          docker run
+          -p 3306:3306
+          --env MYSQL_DATABASE=test
+          --env MYSQL_ALLOW_EMPTY_PASSWORD=yes
+          --name mysql
+          --detach
+          --rm
+          mysql:8
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
+      - cmd: sleep 30
+      - cmd: ./drone-migrate setup-database
+      - cmd: ./drone-migrate migrate-users
+      - cmd: ./drone-migrate migrate-repos
+      - cmd: ./drone-migrate migrate-registries
+      - cmd: ./drone-migrate migrate-secrets
+      - cmd: ./drone-migrate migrate-builds
+      - cmd: ./drone-migrate migrate-stages
+      - cmd: ./drone-migrate migrate-steps
+      - cmd: docker kill mysql
+        silent: true
 
   test-sqlite:
     env:

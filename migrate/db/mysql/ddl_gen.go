@@ -223,9 +223,9 @@ CREATE TABLE IF NOT EXISTS repos (
 ,repo_name                  VARCHAR(250)
 ,repo_slug                  VARCHAR(250)
 ,repo_scm                   VARCHAR(50)
-,repo_clone_url             VARCHAR(2000)
-,repo_ssh_url               VARCHAR(2000)
-,repo_html_url              VARCHAR(2000)
+,repo_clone_url             VARCHAR(1000)
+,repo_ssh_url               VARCHAR(1000)
+,repo_html_url              VARCHAR(1000)
 ,repo_active                BOOLEAN
 ,repo_private               BOOLEAN
 ,repo_visibility            VARCHAR(50)
@@ -281,14 +281,14 @@ CREATE TABLE IF NOT EXISTS builds (
  build_id            INTEGER PRIMARY KEY AUTO_INCREMENT
 ,build_repo_id       INTEGER
 ,build_config_id     INTEGER
-,build_trigger       VARCHAR(250)
+,build_trigger       VARCHAR(100)
 ,build_number        INTEGER
 ,build_parent        INTEGER
 ,build_status        VARCHAR(50)
 ,build_error         VARCHAR(500)
 ,build_event         VARCHAR(50)
 ,build_action        VARCHAR(50)
-,build_link          VARCHAR(2000)
+,build_link          VARCHAR(1000)
 ,build_timestamp     INTEGER
 ,build_title         VARCHAR(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ,build_message       VARCHAR(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
@@ -298,13 +298,13 @@ CREATE TABLE IF NOT EXISTS builds (
 ,build_source_repo   VARCHAR(250)
 ,build_source        VARCHAR(500)
 ,build_target        VARCHAR(500)
-,build_author        VARCHAR(500)
-,build_author_name   VARCHAR(500)
-,build_author_email  VARCHAR(500)
-,build_author_avatar VARCHAR(2000)
+,build_author        VARCHAR(250)
+,build_author_name   VARCHAR(250)
+,build_author_email  VARCHAR(250)
+,build_author_avatar VARCHAR(1000)
 ,build_sender        VARCHAR(500)
 ,build_deploy        VARCHAR(500)
-,build_params        VARCHAR(4000)
+,build_params        VARCHAR(2000)
 ,build_started       INTEGER
 ,build_finished      INTEGER
 ,build_created       INTEGER

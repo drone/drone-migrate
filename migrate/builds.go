@@ -69,6 +69,12 @@ func MigrateBuilds(source, target *sql.DB) error {
 			Updated:      buildV0.Created,
 			Version:      1,
 		}
+		if len(buildV1.Message) > 1000 {
+			buildV1.Message = buildV1.Message[:1000]
+		}
+		if len(buildV1.Title) > 1000 {
+			buildV1.Title = buildV1.Title[:1000]
+		}
 
 		err = meddler.Insert(tx, "builds", buildV1)
 		if err != nil {
