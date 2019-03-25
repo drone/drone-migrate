@@ -1,5 +1,3 @@
-__IMPORTANT: this migration utility is incomplete. It will not yet generate a working 1.0 database__
-
 Migration utility will help you migrate from a Drone 0.8.x database to a Drone 1.0.x database.
 
 ## Preparing for the migration
