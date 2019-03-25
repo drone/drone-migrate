@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/russross/meddler"
+
 	"github.com/drone/drone-go/drone"
 	"github.com/drone/drone-migrate/migrate"
 	"github.com/drone/drone-migrate/migrate/db"
@@ -91,7 +93,8 @@ func main() {
 		if c.GlobalBoolT("debug") {
 			logrus.SetLevel(logrus.DebugLevel)
 		}
-
+		driver := c.GlobalString("target-database-driver")
+		setupDriver(driver)
 		return nil
 	}
 
@@ -379,6 +382,15 @@ func main() {
 
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
+	}
+}
+
+func setupDriver(driver string) {
+	switch driver {
+	case "postgres":
+		meddler.Default = meddler.PostgreSQL
+	case "mysql":
+		meddler.Default = meddler.MySQL
 	}
 }
 

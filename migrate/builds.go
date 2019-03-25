@@ -86,3 +86,9 @@ func MigrateBuilds(source, target *sql.DB) error {
 	logrus.Infof("migration complete")
 	return tx.Commit()
 }
+
+const buildListQuery = `
+SELECT builds.*
+FROM builds INNER JOIN repos ON build.build_repo_id = repos.repo_id
+WHERE repos.repo_user_id > 0
+`

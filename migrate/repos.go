@@ -36,6 +36,7 @@ func MigrateRepos(source, target *sql.DB) error {
 
 	for _, repoV0 := range reposV0 {
 		log := logrus.WithFields(logrus.Fields{
+			"id":   repoV0.ID,
 			"repo": repoV0.FullName,
 		})
 
@@ -194,44 +195,30 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 }
 
 const repoImportQuery = `
-SELECT
-	*
-FROM
-	repos
-WHERE
-	repo_user_id > 0
+SELECT *
+FROM repos
+WHERE repo_user_id > 0
 `
 
 const repoTempQuery = `
-SELECT
-	*
-FROM
-	repos
-WHERE
-	repo_uid LIKE 'temp_%'
+SELECT *
+FROM repos
+WHERE repo_uid LIKE 'temp_%'
 `
 
 const userIdentifierQuery = `
-SELECT
-	*
-FROM
-	users
-WHERE
-	user_id = %d
+SELECT *
+FROM users
+WHERE user_id = %d
 `
 
 const repoUpdateQuery = `
-UPDATE
-	repos
-SET
-	repo_uid = '%s'
-WHERE
-	repo_id = %d
+UPDATE repos
+SET repo_uid = '%s'
+WHERE repo_id = %d
 `
 
 const repoActivateQuery = `
-SELECT
-	*
-FROM
-	repos
+SELECT *
+FROM repos
 `

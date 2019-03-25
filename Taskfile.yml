@@ -1,0 +1,54 @@
+version: '2'
+
+tasks:
+  test-postgres:
+    env:
+      SOURCE_DATABASE_DRIVER: sqlite3
+      TARGET_DATABASE_DRIVER: postgres
+      SOURCE_DATABASE_DATASOURCE: "example/drone.sqlite"
+      TARGET_DATABASE_DATASOURCE: "host=localhost user=postgres dbname=postgres sslmode=disable"
+    cmds:
+      - cmd: docker kill postgres
+        ignore_error: true
+        silent: true
+      - silent: true
+        cmd: >
+          docker run
+          -p 5432:5432
+          --env POSTGRES_USER=postgres
+          --name postgres
+          --detach
+          --rm
+          postgres:9-alpine
+      - cmd: sleep 15
+      - cmd: ./drone-migrate setup-database
+      - cmd: ./drone-migrate migrate-users
+      - cmd: ./drone-migrate migrate-repos
+      - cmd: ./drone-migrate migrate-secrets
+      - cmd: ./drone-migrate migrate-registries
+      - cmd: ./drone-migrate migrate-builds
+      # - cmd: ./drone-migrate migrate-stages
+      # - cmd: ./drone-migrate migrate-steps
+      # - cmd: docker kill postgres
+      #   silent: true
+
+  test-sqlite:
+    env:
+      SOURCE_DATABASE_DRIVER: sqlite3
+      TARGET_DATABASE_DRIVER: sqlite3
+      SOURCE_DATABASE_DATASOURCE: "example/drone.sqlite"
+      TARGET_DATABASE_DATASOURCE: "example/drone.sqlite.new"
+    cmds:
+      - cmd: rm example/drone.sqlite.new
+        ignore_error: true
+        silent: true
+      - cmd: ./drone-migrate setup-database
+      - cmd: ./drone-migrate migrate-users
+      - cmd: ./drone-migrate migrate-repos
+      - cmd: ./drone-migrate migrate-secrets
+      - cmd: ./drone-migrate migrate-registries
+      - cmd: ./drone-migrate migrate-builds
+      - cmd: ./drone-migrate migrate-stages
+      - cmd: ./drone-migrate migrate-steps
+      - cmd: docker kill postgres
+        silent: true

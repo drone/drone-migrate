@@ -95,9 +95,6 @@ const registryImportQuery = `
 SELECT
 	repo_full_name,
 	registry.*
-FROM
-	registry
-	INNER JOIN repos ON (repo_id = registry_repo_id)
-WHERE
-	registry_repo_id > 0
+FROM registry INNER JOIN repos ON (repo_id = registry_repo_id)
+WHERE repo_user_id > 0
 `

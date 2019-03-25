@@ -2,8 +2,6 @@ package migrate
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 
 	"github.com/russross/meddler"
 	"github.com/sirupsen/logrus"
@@ -29,39 +27,24 @@ func MigrateSecrets(source, target *sql.DB) error {
 
 	for _, secretV0 := range secretsV0 {
 		log := logrus.WithFields(logrus.Fields{
-			"repo":   secretV0.RepoFullname,
+			"repo":   secretV0.RepoID,
 			"secret": secretV0.Name,
 		})
 
 		log.Debugln("migrate secret")
 
-		repoV1 := &RepoV1{}
-
-		if err := meddler.QueryRow(target, repoV1, fmt.Sprintf(repoSlugQuery, secretV0.RepoFullname)); err != nil {
-			log.WithError(err).Errorln("failed to get secret repo")
-			continue
-		}
-
-		pullRequest := false
-
-		if secretV0.Events != "" {
-			events := make([]string, 0)
-			json.Unmarshal([]byte(secretV0.Events), &events)
-
-			for _, event := range events {
-				if event == "pull_request" {
-					pullRequest = true
-					break
-				}
-			}
-		}
-
 		secretV1 := &SecretV1{
-			ID:          secretV0.ID,
-			RepoID:      repoV1.ID,
-			Name:        secretV0.Name,
-			Data:        secretV0.Value,
-			PullRequest: pullRequest,
+			ID:     secretV0.ID,
+			RepoID: secretV0.RepoID,
+			Name:   secretV0.Name,
+			Data:   secretV0.Value,
+		}
+
+		for _, event := range secretV0.Events {
+			if event == "pull_request" {
+				secretV1.PullRequest = true
+				break
+			}
 		}
 
 		if err := meddler.Insert(tx, "secrets", secretV1); err != nil {
@@ -77,21 +60,14 @@ func MigrateSecrets(source, target *sql.DB) error {
 }
 
 const secretImportQuery = `
-SELECT
-	repo_full_name,
-	secrets.*
-FROM
-	secrets
-	INNER JOIN repos ON (repo_id = secret_repo_id)
-WHERE
-	secret_repo_id > 0
+SELECT secrets.*
+FROM secrets
+INNER JOIN repos ON secrets.secret_repo_id = repos.repo_id
+WHERE repos.repo_user_id > 0
 `
 
 const repoSlugQuery = `
-SELECT
-	*
-FROM
-	repos
-WHERE
-	repo_slug = '%s'
+SELECT *
+FROM repos
+WHERE repo_slug = '%s'
 `

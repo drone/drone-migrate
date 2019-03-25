@@ -70,7 +70,7 @@ $ docker run -e [...] drone/migrate setup-database
 $ docker run -e [...] drone/migrate migrate-users
 $ docker run -e [...] drone/migrate migrate-repos
 $ docker run -e [...] drone/migrate migrate-secrets
-$ docker run -e [...] drone/migrate migrate-registires
+$ docker run -e [...] drone/migrate migrate-registries
 $ docker run -e [...] drone/migrate migrate-builds
 $ docker run -e [...] drone/migrate migrate-stages
 $ docker run -e [...] drone/migrate migrate-steps
@@ -138,7 +138,7 @@ $ docker run -e [...] drone/migrate migrate-secrets
 If you haven't used ayn private images within the pipeline you can skip this step, this is only needed if you are using private Docker images for your Drone steps.
 
 ```shell
-$ docker run -e [...] drone/migrate migrate-registires
+$ docker run -e [...] drone/migrate migrate-registries
 ```
 
 ## Update the repository metadata

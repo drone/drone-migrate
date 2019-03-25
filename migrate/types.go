@@ -262,15 +262,14 @@ type (
 
 	// SecretV0 is a Drone 0.x secret.
 	SecretV0 struct {
-		ID           int64  `meddler:"secret_id"`
-		RepoID       int64  `meddler:"secret_repo_id"`
-		RepoFullname string `meddler:"repo_full_name"`
-		Name         string `meddler:"secret_name"`
-		Value        string `meddler:"secret_value"`
-		Images       string `meddler:"secret_images"`
-		Events       string `meddler:"secret_events"`
-		SkipVerify   bool   `meddler:"secret_skip_verify"`
-		Conceal      bool   `meddler:"secret_conceal"`
+		ID         int64    `meddler:"secret_id"`
+		RepoID     int64    `meddler:"secret_repo_id"`
+		Name       string   `meddler:"secret_name"`
+		Value      string   `meddler:"secret_value"`
+		Images     string   `meddler:"secret_images"`
+		Events     []string `meddler:"secret_events,json"`
+		SkipVerify bool     `meddler:"secret_skip_verify"`
+		Conceal    bool     `meddler:"secret_conceal"`
 	}
 
 	// SecretV1 is a Drone 1.x secret.
