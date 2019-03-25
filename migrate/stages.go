@@ -13,7 +13,7 @@ func MigrateStages(source, target *sql.DB) error {
 	stagesV0 := []*StageV0{}
 
 	// 1. load all repos from the V0 database.
-	err := meddler.QueryAll(source, &stagesV0, "select * from procs where proc_ppid = 0")
+	err := meddler.QueryAll(source, &stagesV0, stageListQuery)
 	if err != nil {
 		return err
 	}
@@ -73,3 +73,12 @@ func MigrateStages(source, target *sql.DB) error {
 	logrus.Infof("migration complete")
 	return tx.Commit()
 }
+
+const stageListQuery = `
+SELECT procs.*
+FROM procs
+INNER JOIN builds ON procs.proc_build_id = builds.build_id
+INNER JOIN repos ON builds.build_repo_id = repos.repo_id
+WHERE proc_ppid = 0
+  AND repo_user_id > 0
+`
