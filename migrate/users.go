@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/dchest/uniuri"
@@ -29,7 +30,12 @@ func MigrateUsers(source, target *sql.DB) error {
 
 	defer tx.Rollback()
 
+	var sequence int64
 	for _, userV0 := range usersV0 {
+		if userV0.ID > sequence {
+			sequence = userV0.ID
+		}
+
 		log := logrus.WithFields(logrus.Fields{
 			"id":    userV0.ID,
 			"login": userV0.Login,
@@ -64,6 +70,14 @@ func MigrateUsers(source, target *sql.DB) error {
 		log.Debugln("migration complete")
 	}
 
+	if meddler.Default == meddler.PostgreSQL {
+		_, err = tx.Exec(fmt.Sprintf(updateUserSeq, sequence+1))
+		if err != nil {
+			logrus.WithError(err).Errorln("failed to reset sequence")
+			return err
+		}
+	}
+
 	logrus.Infoln("migration complete")
 	return tx.Commit()
 }
@@ -73,4 +87,9 @@ SELECT
 	*
 FROM
 	users
+`
+
+const updateUserSeq = `
+ALTER SEQUENCE users_user_id_seq
+RESTART WITH %d
 `

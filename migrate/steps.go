@@ -31,7 +31,12 @@ func MigrateSteps(source, target *sql.DB) error {
 
 	// 3. iterate through the list and convert from
 	// the 0.x to the 1.x structure and insert.
+	var sequence int64
 	for _, stepV0 := range stepsV0 {
+		if stepV0.ID > sequence {
+			sequence = stepV0.ID
+		}
+
 		stageV0 := &StageV0{}
 		err := meddler.QueryRow(source, stageV0, fmt.Sprintf("select * from procs where proc_pid = %d and proc_build_id = %d", stepV0.PPID, stepV0.BuildID))
 		if err != nil {
@@ -60,6 +65,14 @@ func MigrateSteps(source, target *sql.DB) error {
 		}
 	}
 
+	if meddler.Default == meddler.PostgreSQL {
+		_, err = tx.Exec(fmt.Sprintf(updateStepSeq, sequence))
+		if err != nil {
+			logrus.WithError(err).Errorln("failed to reset sequence")
+			return err
+		}
+	}
+
 	logrus.Infof("migration complete")
 	return tx.Commit()
 }
@@ -71,4 +84,9 @@ INNER JOIN builds ON procs.proc_build_id = builds.build_id
 INNER JOIN repos ON builds.build_repo_id = repos.repo_id
 WHERE proc_ppid != 0
   AND repo_user_id > 0
+`
+
+const updateStepSeq = `
+ALTER SEQUENCE steps_step_id_seq
+RESTART WITH %d
 `

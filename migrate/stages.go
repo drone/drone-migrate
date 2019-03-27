@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/russross/meddler"
 	"github.com/sirupsen/logrus"
@@ -30,7 +31,12 @@ func MigrateStages(source, target *sql.DB) error {
 
 	// 3. iterate through the list and convert from
 	// the 0.x to the 1.x structure and insert.
+	var sequence int64
 	for _, stageV0 := range stagesV0 {
+		if stageV0.ID > sequence {
+			sequence = stageV0.ID
+		}
+
 		stageV1 := &StageV1{
 			ID:        stageV0.ID,
 			RepoID:    0,
@@ -70,6 +76,14 @@ func MigrateStages(source, target *sql.DB) error {
 		}
 	}
 
+	if meddler.Default == meddler.PostgreSQL {
+		_, err = tx.Exec(fmt.Sprintf(updateStageSeq, sequence))
+		if err != nil {
+			logrus.WithError(err).Errorln("failed to reset sequence")
+			return err
+		}
+	}
+
 	logrus.Infof("migration complete")
 	return tx.Commit()
 }
@@ -81,4 +95,9 @@ INNER JOIN builds ON procs.proc_build_id = builds.build_id
 INNER JOIN repos ON builds.build_repo_id = repos.repo_id
 WHERE proc_ppid = 0
   AND repo_user_id > 0
+`
+
+const updateStageSeq = `
+ALTER SEQUENCE stages_stage_id_seq
+RESTART WITH %d
 `

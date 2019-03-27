@@ -34,7 +34,12 @@ func MigrateRepos(source, target *sql.DB) error {
 
 	defer tx.Rollback()
 
+	var sequence int64
 	for _, repoV0 := range reposV0 {
+		if repoV0.ID > sequence {
+			sequence = repoV0.ID
+		}
+
 		log := logrus.WithFields(logrus.Fields{
 			"id":   repoV0.ID,
 			"repo": repoV0.FullName,
@@ -81,6 +86,14 @@ func MigrateRepos(source, target *sql.DB) error {
 		}
 
 		log.Debugln("migration complete")
+	}
+
+	if meddler.Default == meddler.PostgreSQL {
+		_, err = tx.Exec(fmt.Sprintf(updateRepoSeq, sequence))
+		if err != nil {
+			logrus.WithError(err).Errorln("failed to reset sequence")
+			return err
+		}
 	}
 
 	logrus.Infoln("migration complete")
@@ -221,4 +234,9 @@ WHERE repo_id = %d
 const repoActivateQuery = `
 SELECT *
 FROM repos
+`
+
+const updateRepoSeq = `
+ALTER SEQUENCE repos_repo_id_seq
+RESTART WITH %d
 `

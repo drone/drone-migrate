@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/russross/meddler"
 	"github.com/sirupsen/logrus"
@@ -25,7 +26,12 @@ func MigrateSecrets(source, target *sql.DB) error {
 
 	defer tx.Rollback()
 
+	var sequence int64
 	for _, secretV0 := range secretsV0 {
+		if secretV0.ID > sequence {
+			sequence = secretV0.ID
+		}
+
 		log := logrus.WithFields(logrus.Fields{
 			"repo":   secretV0.RepoID,
 			"secret": secretV0.Name,
@@ -55,6 +61,14 @@ func MigrateSecrets(source, target *sql.DB) error {
 		log.Debugln("migration complete")
 	}
 
+	if meddler.Default == meddler.PostgreSQL {
+		_, err = tx.Exec(fmt.Sprintf(updateSecretsSeq, sequence))
+		if err != nil {
+			logrus.WithError(err).Errorln("failed to reset sequence")
+			return err
+		}
+	}
+
 	logrus.Infof("migration complete")
 	return tx.Commit()
 }
@@ -70,4 +84,9 @@ const repoSlugQuery = `
 SELECT *
 FROM repos
 WHERE repo_slug = '%s'
+`
+
+const updateSecretsSeq = `
+ALTER SEQUENCE secrets_secret_id_seq
+RESTART WITH %d
 `

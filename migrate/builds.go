@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/russross/meddler"
 	"github.com/sirupsen/logrus"
@@ -30,7 +31,12 @@ func MigrateBuilds(source, target *sql.DB) error {
 
 	// 3. iterate through the list and convert from
 	// the 0.x to the 1.x structure and insert.
+	var sequence int64
 	for _, buildV0 := range buildsV0 {
+		if buildV0.ID > sequence {
+			sequence = buildV0.ID
+		}
+
 		log := logrus.
 			WithField("repository", buildV0.RepoID).
 			WithField("build", buildV0.Number)
@@ -89,6 +95,14 @@ func MigrateBuilds(source, target *sql.DB) error {
 		log.Debugln("build migration complete")
 	}
 
+	if meddler.Default == meddler.PostgreSQL {
+		_, err = tx.Exec(fmt.Sprintf(updateBuildSeq, sequence))
+		if err != nil {
+			logrus.WithError(err).Errorln("failed to reset sequence")
+			return err
+		}
+	}
+
 	logrus.Infof("migration complete")
 	return tx.Commit()
 }
@@ -97,4 +111,9 @@ const buildListQuery = `
 SELECT builds.*
 FROM builds INNER JOIN repos ON build.build_repo_id = repos.repo_id
 WHERE repos.repo_user_id > 0
+`
+
+const updateBuildSeq = `
+ALTER SEQUENCE builds_build_id_seq
+RESTART WITH %d
 `
