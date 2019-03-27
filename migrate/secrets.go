@@ -62,7 +62,7 @@ func MigrateSecrets(source, target *sql.DB) error {
 	}
 
 	if meddler.Default == meddler.PostgreSQL {
-		_, err = tx.Exec(fmt.Sprintf(updateSecretsSeq, sequence))
+		_, err = tx.Exec(fmt.Sprintf(updateSecretsSeq, sequence+1))
 		if err != nil {
 			logrus.WithError(err).Errorln("failed to reset sequence")
 			return err
