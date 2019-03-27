@@ -14,7 +14,7 @@ func MigrateLogs(source, target *sql.DB) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, "select * from procs where proc_ppid != 0")
+	err := meddler.QueryAll(source, &stepsV0, stepListQuery)
 	if err != nil {
 		return err
 	}
@@ -34,6 +34,9 @@ func MigrateLogs(source, target *sql.DB) error {
 	for _, stepV0 := range stepsV0 {
 		logsV0 := &LogsV0{}
 		err := meddler.QueryRow(source, logsV0, fmt.Sprintf("select * from logs where log_job_id = %d", stepV0.ID))
+		if err == sql.ErrNoRows {
+			continue
+		}
 		if err != nil {
 			logrus.WithError(err).Warnf("cannot find logs for step: id: %d", stepV0.ID)
 			continue

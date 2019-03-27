@@ -5,7 +5,7 @@ tasks:
     cmds:
       - cmd: GOPATH="" go build
 
-  test-postgres:
+  postgres:
     env:
       SOURCE_DATABASE_DRIVER: sqlite3
       TARGET_DATABASE_DRIVER: postgres
@@ -33,10 +33,11 @@ tasks:
       - cmd: ./drone-migrate migrate-builds
       - cmd: ./drone-migrate migrate-stages
       - cmd: ./drone-migrate migrate-steps
+      - cmd: ./drone-migrate migrate-logs
       - cmd: docker kill postgres
         silent: true
 
-  test-mysql:
+  mysql:
     env:
       DEBUG: "false"
       SOURCE_DATABASE_DRIVER: sqlite3
@@ -70,7 +71,7 @@ tasks:
       - cmd: docker kill mysql
         silent: true
 
-  test-sqlite:
+  sqlite:
     env:
       SOURCE_DATABASE_DRIVER: sqlite3
       TARGET_DATABASE_DRIVER: sqlite3
@@ -88,5 +89,5 @@ tasks:
       - cmd: ./drone-migrate migrate-builds
       - cmd: ./drone-migrate migrate-stages
       - cmd: ./drone-migrate migrate-steps
-      - cmd: docker kill postgres
-        silent: true
+      - cmd: ./drone-migrate migrate-logs
+
