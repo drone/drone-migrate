@@ -19,8 +19,8 @@ The migration utility will copy data from your 0.8.x database to your new 1.0.x 
 ```sh
 -e SOURCE_DATABASE_DRIVER=sqlite3|mysql|postgres
 -e TARGET_DATABASE_DRIVER=sqlite3|mysql|postgres
--e SOURCE_DATABASE_DATASOURCE=/path/to/old/database.sqlite
--e TARGET_DATABASE_DATASOURCE=/path/to/new/database.sqlite
+-e SOURCE_DATABASE_DATASOURCE=/path/to/old/database.sqlite|user:password@tcp(hostname:port)/database
+-e TARGET_DATABASE_DATASOURCE=/path/to/new/database.sqlite|user:password@tcp(hostname:port)/database
 ```
 
 If you are using GitHub, configure the GitHub driver:
