@@ -16,6 +16,7 @@ import (
 	"github.com/drone/drone-migrate/migrate"
 	"github.com/drone/drone-migrate/migrate/db"
 	"github.com/drone/go-scm/scm"
+	"github.com/drone/go-scm/scm/driver/bitbucket"
 	"github.com/drone/go-scm/scm/driver/gitea"
 	"github.com/drone/go-scm/scm/driver/github"
 	"github.com/drone/go-scm/scm/driver/gitlab"
@@ -81,6 +82,16 @@ func main() {
 			Name:   "stash-private-key-file",
 			Usage:  "atlassian stash private key file",
 			EnvVar: "STASH_PRIVATE_KEY_FILE",
+		},
+		cli.StringFlag{
+			Name:   "bitbucket-client-id",
+			Usage:  "bitbucket oauth2 client id",
+			EnvVar: "BITBUCKET_CLIENT_ID",
+		},
+		cli.StringFlag{
+			Name:   "bitbucket-client-secret",
+			Usage:  "bitbucket oauth2 client secret",
+			EnvVar: "BITBUCKET_CLIENT_SECRET",
 		},
 		cli.BoolTFlag{
 			Name:   "debug",
@@ -438,6 +449,20 @@ func createClient(c *cli.Context) (*scm.Client, error) {
 		client.Client = &http.Client{
 			Transport: &oauth2.Transport{
 				Source: oauth2.ContextTokenSource(),
+			},
+		}
+
+		return client, nil
+	case "bitbucket":
+		client := bitbucket.NewDefault()
+		client.Client = &http.Client{
+			Transport: &oauth2.Transport{
+				Source: &oauth2.Refresher{
+					ClientID:     c.String("bitbucket-client-id"),
+					ClientSecret: c.String("bitbucket-client-secret"),
+					Endpoint:     "https://bitbucket.org/site/oauth2/access_token",
+					Source:       oauth2.ContextTokenSource(),
+				},
 			},
 		}
 

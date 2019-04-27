@@ -60,6 +60,14 @@ If you are using Stash, configure the Stash driver:
 -e STASH_PRIVATE_KEY_FILE=/path/to/private/key.pem
 ```
 
+If you are using Bitbucket Cloud, configure the Bitbucket driver:
+
+```sh
+-e SCM_DRIVER=bitbucket
+-e BITBUCKET_CLIENT_ID=$your_client_id
+-e BITBUCKET_CLIENT_SECRET=$your_client_secret
+```
+
 # Full Migration
 
 
