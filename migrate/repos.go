@@ -128,11 +128,14 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 
 		log = log.WithField("owner", user.Login)
 
-		ctx := scm.WithContext(context.Background(), &scm.Token{
+		tok := &scm.Token{
 			Token:   user.Token,
 			Refresh: user.Refresh,
-			// Expires: user.Expiry,
-		})
+		}
+		if user.Expiry > 0 {
+			tok.Expires = time.Unix(user.Expiry, 0)
+		}
+		ctx := scm.WithContext(context.Background(), tok)
 
 		remoteRepo, _, err := client.Repositories.Find(ctx, scm.Join(repo.Namespace, repo.Name))
 
