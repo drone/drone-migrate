@@ -90,8 +90,6 @@ $ docker run -e [...] drone/migrate migrate-logs
 $ docker run -e [...] drone/migrate update-repos
 ```
 
-# Re-activation
-
 The final step is to re-activate your repositories. At this time it is safe to start your Drone server and execute the final migration command:
 
 ```
