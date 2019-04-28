@@ -23,6 +23,12 @@ The migration utility will copy data from your 0.8.x database to your new 1.0.x 
 -e TARGET_DATABASE_DATASOURCE=/path/to/new/database.sqlite
 ```
 
+Configure the Drone 1.0 server address:
+
+```
+-e DRONE_SERVER=https://drone.company.com
+```
+
 If you are using GitHub, configure the GitHub driver:
 
 ```sh
@@ -82,6 +88,13 @@ $ docker run -e [...] drone/migrate migrate-stages
 $ docker run -e [...] drone/migrate migrate-steps
 $ docker run -e [...] drone/migrate migrate-logs
 $ docker run -e [...] drone/migrate update-repos
+```
+
+# Re-activation
+
+The final step is to re-activate your repositories. At this time it is safe to start your Drone server and execute the final migration command:
+
+```
 $ docker run -e [...] drone/migrate activate-repos
 ```
 
