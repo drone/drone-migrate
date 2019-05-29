@@ -17,6 +17,14 @@ var migrations = []struct {
 		stmt: createTableRepos,
 	},
 	{
+		name: "alter-table-repos-add-column-no-fork",
+		stmt: alterTableReposAddColumnNoFork,
+	},
+	{
+		name: "alter-table-repos-add-column-no-pulls",
+		stmt: alterTableReposAddColumnNoPulls,
+	},
+	{
 		name: "create-table-perms",
 		stmt: createTablePerms,
 	},
@@ -107,6 +115,14 @@ var migrations = []struct {
 	{
 		name: "create-table-nodes",
 		stmt: createTableNodes,
+	},
+	{
+		name: "alter-table-builds-add-column-cron",
+		stmt: alterTableBuildsAddColumnCron,
+	},
+	{
+		name: "create-table-org-secrets",
+		stmt: createTableOrgSecrets,
 	},
 }
 
@@ -223,9 +239,9 @@ CREATE TABLE IF NOT EXISTS repos (
 ,repo_name                  VARCHAR(250)
 ,repo_slug                  VARCHAR(250)
 ,repo_scm                   VARCHAR(50)
-,repo_clone_url             VARCHAR(1000)
-,repo_ssh_url               VARCHAR(1000)
-,repo_html_url              VARCHAR(1000)
+,repo_clone_url             VARCHAR(2000)
+,repo_ssh_url               VARCHAR(2000)
+,repo_html_url              VARCHAR(2000)
 ,repo_active                BOOLEAN
 ,repo_private               BOOLEAN
 ,repo_visibility            VARCHAR(50)
@@ -244,6 +260,14 @@ CREATE TABLE IF NOT EXISTS repos (
 ,UNIQUE(repo_slug)
 ,UNIQUE(repo_uid)
 );
+`
+
+var alterTableReposAddColumnNoFork = `
+ALTER TABLE repos ADD COLUMN repo_no_forks BOOLEAN NOT NULL DEFAULT false;
+`
+
+var alterTableReposAddColumnNoPulls = `
+ALTER TABLE repos ADD COLUMN repo_no_pulls BOOLEAN NOT NULL DEFAULT false;
 `
 
 //
@@ -281,7 +305,7 @@ CREATE TABLE IF NOT EXISTS builds (
  build_id            INTEGER PRIMARY KEY AUTO_INCREMENT
 ,build_repo_id       INTEGER
 ,build_config_id     INTEGER
-,build_trigger       VARCHAR(100)
+,build_trigger       VARCHAR(250)
 ,build_number        INTEGER
 ,build_parent        INTEGER
 ,build_status        VARCHAR(50)
@@ -298,9 +322,9 @@ CREATE TABLE IF NOT EXISTS builds (
 ,build_source_repo   VARCHAR(250)
 ,build_source        VARCHAR(500)
 ,build_target        VARCHAR(500)
-,build_author        VARCHAR(250)
-,build_author_name   VARCHAR(250)
-,build_author_email  VARCHAR(250)
+,build_author        VARCHAR(500)
+,build_author_name   VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+,build_author_email  VARCHAR(500)
 ,build_author_avatar VARCHAR(1000)
 ,build_sender        VARCHAR(500)
 ,build_deploy        VARCHAR(500)
@@ -526,5 +550,30 @@ CREATE TABLE IF NOT EXISTS nodes (
 ,node_pulled     INTEGER
 
 ,UNIQUE(node_name)
+);
+`
+
+//
+// 011_add_column_builds_cron.sql
+//
+
+var alterTableBuildsAddColumnCron = `
+ALTER TABLE builds ADD COLUMN build_cron VARCHAR(50) NOT NULL DEFAULT '';
+`
+
+//
+// 012_create_table_global_secrets.sql
+//
+
+var createTableOrgSecrets = `
+CREATE TABLE IF NOT EXISTS orgsecrets (
+ secret_id                INTEGER PRIMARY KEY AUTO_INCREMENT
+,secret_namespace         VARCHAR(50)
+,secret_name              VARCHAR(200)
+,secret_type              VARCHAR(50)
+,secret_data              BLOB
+,secret_pull_request      BOOLEAN
+,secret_pull_request_push BOOLEAN
+,UNIQUE(secret_namespace, secret_name)
 );
 `

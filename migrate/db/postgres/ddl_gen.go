@@ -17,6 +17,14 @@ var migrations = []struct {
 		stmt: createTableRepos,
 	},
 	{
+		name: "alter-table-repos-add-column-no-fork",
+		stmt: alterTableReposAddColumnNoFork,
+	},
+	{
+		name: "alter-table-repos-add-column-no-pulls",
+		stmt: alterTableReposAddColumnNoPulls,
+	},
+	{
 		name: "create-table-perms",
 		stmt: createTablePerms,
 	},
@@ -33,8 +41,8 @@ var migrations = []struct {
 		stmt: createTableBuilds,
 	},
 	{
-		name: "create-index-builds-in-progress",
-		stmt: createIndexBuildsInProgress,
+		name: "create-index-builds-incomplete",
+		stmt: createIndexBuildsIncomplete,
 	},
 	{
 		name: "create-index-builds-repo",
@@ -103,6 +111,14 @@ var migrations = []struct {
 	{
 		name: "create-table-nodes",
 		stmt: createTableNodes,
+	},
+	{
+		name: "alter-table-builds-add-column-cron",
+		stmt: alterTableBuildsAddColumnCron,
+	},
+	{
+		name: "create-table-org-secrets",
+		stmt: createTableOrgSecrets,
 	},
 }
 
@@ -212,7 +228,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 var createTableRepos = `
 CREATE TABLE IF NOT EXISTS repos (
- repo_id              SERIAL PRIMARY KEY
+ repo_id                    SERIAL PRIMARY KEY
 ,repo_uid                   VARCHAR(250)
 ,repo_user_id               INTEGER
 ,repo_namespace             VARCHAR(250)
@@ -240,6 +256,14 @@ CREATE TABLE IF NOT EXISTS repos (
 ,UNIQUE(repo_slug)
 ,UNIQUE(repo_uid)
 );
+`
+
+var alterTableReposAddColumnNoFork = `
+ALTER TABLE repos ADD COLUMN repo_no_forks BOOLEAN NOT NULL DEFAULT false;
+`
+
+var alterTableReposAddColumnNoPulls = `
+ALTER TABLE repos ADD COLUMN repo_no_pulls BOOLEAN NOT NULL DEFAULT false;
 `
 
 //
@@ -310,9 +334,9 @@ CREATE TABLE IF NOT EXISTS builds (
 );
 `
 
-var createIndexBuildsInProgress = `
-CREATE INDEX IF NOT EXISTS ix_build_in_progress ON builds (build_status)
- WHERE build_status IN ('pending', 'running');
+var createIndexBuildsIncomplete = `
+CREATE INDEX IF NOT EXISTS ix_build_incomplete ON builds (build_status)
+WHERE build_status IN ('pending', 'running');
 `
 
 var createIndexBuildsRepo = `
@@ -329,9 +353,6 @@ CREATE INDEX IF NOT EXISTS ix_build_sender ON builds (build_sender);
 
 var createIndexBuildsRef = `
 CREATE INDEX IF NOT EXISTS ix_build_ref ON builds (build_repo_id, build_ref);
-
-CREATE INDEX IF NOT EXISTS ix_build_incomplete ON builds (build_status)
-WHERE build_status IN ('pending', 'running');
 `
 
 //
@@ -375,7 +396,7 @@ CREATE INDEX IF NOT EXISTS ix_stages_build ON stages (stage_build_id);
 `
 
 var createIndexStagesStatus = `
-CREATE INDEX IF NOT EXISTS ix_build_in_progress ON stages (stage_status)
+CREATE INDEX IF NOT EXISTS ix_stage_in_progress ON stages (stage_status)
 WHERE stage_status IN ('pending', 'running');
 `
 
@@ -507,5 +528,30 @@ CREATE TABLE IF NOT EXISTS nodes (
 ,node_pulled     INTEGER
 
 ,UNIQUE(node_name)
+);
+`
+
+//
+// 011_add_column_builds_cron.sql
+//
+
+var alterTableBuildsAddColumnCron = `
+ALTER TABLE builds ADD COLUMN build_cron VARCHAR(50) NOT NULL DEFAULT '';
+`
+
+//
+// 012_create_table_org_secrets.sql
+//
+
+var createTableOrgSecrets = `
+CREATE TABLE IF NOT EXISTS orgsecrets (
+ secret_id                SERIAL PRIMARY KEY
+,secret_namespace         VARCHAR(50)
+,secret_name              VARCHAR(200)
+,secret_type              VARCHAR(50)
+,secret_data              BYTEA
+,secret_pull_request      BOOLEAN
+,secret_pull_request_push BOOLEAN
+,UNIQUE(secret_namespace, secret_name)
 );
 `

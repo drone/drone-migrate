@@ -17,6 +17,14 @@ var migrations = []struct {
 		stmt: createTableRepos,
 	},
 	{
+		name: "alter-table-repos-add-column-no-fork",
+		stmt: alterTableReposAddColumnNoFork,
+	},
+	{
+		name: "alter-table-repos-add-column-no-pulls",
+		stmt: alterTableReposAddColumnNoPulls,
+	},
+	{
 		name: "create-table-perms",
 		stmt: createTablePerms,
 	},
@@ -31,10 +39,6 @@ var migrations = []struct {
 	{
 		name: "create-table-builds",
 		stmt: createTableBuilds,
-	},
-	{
-		name: "create-index-builds-in-progress",
-		stmt: createIndexBuildsInProgress,
 	},
 	{
 		name: "create-index-builds-repo",
@@ -107,6 +111,14 @@ var migrations = []struct {
 	{
 		name: "create-table-nodes",
 		stmt: createTableNodes,
+	},
+	{
+		name: "alter-table-builds-add-column-cron",
+		stmt: alterTableBuildsAddColumnCron,
+	},
+	{
+		name: "create-table-org-secrets",
+		stmt: createTableOrgSecrets,
 	},
 }
 
@@ -190,7 +202,7 @@ SELECT name FROM migrations
 var createTableUsers = `
 CREATE TABLE IF NOT EXISTS users (
  user_id            INTEGER PRIMARY KEY AUTOINCREMENT
-,user_login         TEXT
+,user_login         TEXT COLLATE NOCASE
 ,user_email         TEXT
 ,user_admin         BOOLEAN
 ,user_machine       BOOLEAN
@@ -244,6 +256,14 @@ CREATE TABLE IF NOT EXISTS repos (
 ,UNIQUE(repo_slug)
 ,UNIQUE(repo_uid)
 );
+`
+
+var alterTableReposAddColumnNoFork = `
+ALTER TABLE repos ADD COLUMN repo_no_forks BOOLEAN NOT NULL DEFAULT 0;
+`
+
+var alterTableReposAddColumnNoPulls = `
+ALTER TABLE repos ADD COLUMN repo_no_pulls BOOLEAN NOT NULL DEFAULT 0;
 `
 
 //
@@ -313,11 +333,6 @@ CREATE TABLE IF NOT EXISTS builds (
 );
 `
 
-var createIndexBuildsInProgress = `
-CREATE INDEX IF NOT EXISTS ix_build_in_progress ON builds (build_status)
-WHERE build_status IN ('pending', 'running');
-`
-
 var createIndexBuildsRepo = `
 CREATE INDEX IF NOT EXISTS ix_build_repo ON builds (build_repo_id);
 `
@@ -381,7 +396,7 @@ CREATE INDEX IF NOT EXISTS ix_stages_build ON stages (stage_build_id);
 `
 
 var createIndexStagesStatus = `
-CREATE INDEX IF NOT EXISTS ix_build_in_progress ON stages (stage_status)
+CREATE INDEX IF NOT EXISTS ix_stage_in_progress ON stages (stage_status)
 WHERE stage_status IN ('pending', 'running');
 `
 
@@ -515,5 +530,30 @@ CREATE TABLE IF NOT EXISTS nodes (
 ,node_pulled     INTEGER
 
 ,UNIQUE(node_name)
+);
+`
+
+//
+// 011_add_column_builds_cron.sql
+//
+
+var alterTableBuildsAddColumnCron = `
+ALTER TABLE builds ADD COLUMN build_cron TEXT NOT NULL DEFAULT '';
+`
+
+//
+// 012_create_table_org_secrets.sql
+//
+
+var createTableOrgSecrets = `
+CREATE TABLE IF NOT EXISTS orgsecrets (
+ secret_id                INTEGER PRIMARY KEY AUTOINCREMENT
+,secret_namespace         TEXT COLLATE NOCASE
+,secret_name              TEXT COLLATE NOCASE
+,secret_type              TEXT
+,secret_data              BLOB
+,secret_pull_request      BOOLEAN
+,secret_pull_request_push BOOLEAN
+,UNIQUE(secret_namespace, secret_name)
 );
 `

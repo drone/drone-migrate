@@ -70,31 +70,33 @@ type (
 
 	// RepoV1 is a Drone 1.x repository.
 	RepoV1 struct {
-		ID         int64  `meddler:"repo_id"`
-		UID        string `meddler:"repo_uid"`
-		UserID     int64  `meddler:"repo_user_id"`
-		Namespace  string `meddler:"repo_namespace"`
-		Name       string `meddler:"repo_name"`
-		Slug       string `meddler:"repo_slug"`
-		SCM        string `meddler:"repo_scm"`
-		HTTPURL    string `meddler:"repo_clone_url"`
-		SSHURL     string `meddler:"repo_ssh_url"`
-		Link       string `meddler:"repo_html_url"`
-		Branch     string `meddler:"repo_branch"`
-		Private    bool   `meddler:"repo_private"`
-		Visibility string `meddler:"repo_visibility"`
-		Active     bool   `meddler:"repo_active"`
-		Config     string `meddler:"repo_config"`
-		Trusted    bool   `meddler:"repo_trusted"`
-		Protected  bool   `meddler:"repo_protected"`
-		Timeout    int64  `meddler:"repo_timeout"`
-		Counter    int64  `meddler:"repo_counter"`
-		Synced     int64  `meddler:"repo_synced"`
-		Created    int64  `meddler:"repo_created"`
-		Updated    int64  `meddler:"repo_updated"`
-		Version    int64  `meddler:"repo_version"`
-		Signer     string `meddler:"repo_signer"`
-		Secret     string `meddler:"repo_secret"`
+		ID          int64  `meddler:"repo_id"`
+		UID         string `meddler:"repo_uid"`
+		UserID      int64  `meddler:"repo_user_id"`
+		Namespace   string `meddler:"repo_namespace"`
+		Name        string `meddler:"repo_name"`
+		Slug        string `meddler:"repo_slug"`
+		SCM         string `meddler:"repo_scm"`
+		HTTPURL     string `meddler:"repo_clone_url"`
+		SSHURL      string `meddler:"repo_ssh_url"`
+		Link        string `meddler:"repo_html_url"`
+		Branch      string `meddler:"repo_branch"`
+		Private     bool   `meddler:"repo_private"`
+		Visibility  string `meddler:"repo_visibility"`
+		Active      bool   `meddler:"repo_active"`
+		Config      string `meddler:"repo_config"`
+		Trusted     bool   `meddler:"repo_trusted"`
+		Protected   bool   `meddler:"repo_protected"`
+		IgnoreForks bool   `meddler:"repo_no_forks"`
+		IgnorePulls bool   `meddler:"repo_no_pulls"`
+		Timeout     int64  `meddler:"repo_timeout"`
+		Counter     int64  `meddler:"repo_counter"`
+		Synced      int64  `meddler:"repo_synced"`
+		Created     int64  `meddler:"repo_created"`
+		Updated     int64  `meddler:"repo_updated"`
+		Version     int64  `meddler:"repo_version"`
+		Signer      string `meddler:"repo_signer"`
+		Secret      string `meddler:"repo_secret"`
 	}
 
 	// BuildV0 is a Drone 0.x build.

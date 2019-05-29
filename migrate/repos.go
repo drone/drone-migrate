@@ -80,6 +80,13 @@ func MigrateRepos(source, target *sql.DB) error {
 			UID: fmt.Sprintf("temp_%d", repoV0.ID),
 		}
 
+		// if the repository is activate and pull requests
+		// are disabled in the source database, configure the
+		// target repository to ignore pull requests.
+		if repoV0.AllowPull == false && repoV0.UserID > 0 {
+			repoV1.IgnorePulls = true
+		}
+
 		if err := meddler.Insert(tx, "repos", repoV1); err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
