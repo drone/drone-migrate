@@ -142,7 +142,8 @@ $ docker run -e [...] drone/migrate migrate-steps
 $ docker run -e [...] drone/migrate migrate-logs
 ```
 
-you can optionally migrate logs to s3 storage:
+you can optionally migrate logs to s3 storage. _Note that the migration utility authenticates with aws using standard authentication methods, including aws_access_key_id and aws_secret_access_key_
+
 
 ```shell
 $ docker run -e S3_BUCKET=<bucket> -e [...] drone/migrate migrate-logs-s3
