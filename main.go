@@ -93,6 +93,16 @@ func main() {
 			Usage:  "bitbucket oauth2 client secret",
 			EnvVar: "BITBUCKET_CLIENT_SECRET",
 		},
+		cli.StringFlag{
+			Name:   "s3-bucket",
+			Usage:  "s3 bucket name",
+			EnvVar: "S3_BUCKET",
+		},
+		cli.StringFlag{
+			Name:   "s3-prefix",
+			Usage:  "s3 path prefix (optional)",
+			EnvVar: "S3_PREFIX",
+		},
 		cli.BoolTFlag{
 			Name:   "debug",
 			Usage:  "enable debug mode",
@@ -318,6 +328,24 @@ func main() {
 				}
 
 				return migrate.MigrateLogs(source, target)
+			},
+		},
+		{
+			Name:  "migrate-logs-s3",
+			Usage: "migrate drone logs to s3",
+			Action: func(c *cli.Context) error {
+				source, err := sql.Open(
+					c.GlobalString("source-database-driver"),
+					c.GlobalString("source-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				bucket := c.String("s3-bucket")
+				prefix := c.String("s3-prefix")
+				return migrate.MigrateLogsS3(source, bucket, prefix)
 			},
 		},
 		{

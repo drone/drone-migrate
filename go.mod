@@ -1,6 +1,7 @@
 module github.com/drone/drone-migrate
 
 require (
+	github.com/aws/aws-sdk-go v1.19.40
 	github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
 	github.com/drone/drone-go v0.8.4
 	github.com/drone/go-scm v1.0.5

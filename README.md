@@ -142,6 +142,12 @@ $ docker run -e [...] drone/migrate migrate-steps
 $ docker run -e [...] drone/migrate migrate-logs
 ```
 
+you can optionally migrate logs to s3 storage:
+
+```shell
+$ docker run -e S3_BUCKET=<bucket> -e [...] drone/migrate migrate-logs-s3
+```
+
 ## Migrate secrets from 0.8 to 1.0
 
 Secrets stored within Drone can be migrated, if you use some external tool to store your secrets like Vault you can skip this step.
