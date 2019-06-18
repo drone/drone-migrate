@@ -180,3 +180,11 @@ The final step is to ensure all repositories are activated and have a valid web-
 ```shell
 $ docker run -e [...] drone/migrate activate-repos
 ```
+
+## Dump Tokens (Optional)
+
+You can optionally dump 0.8 user API tokens for use with 1.0 as described [here](https://github.com/drone/drone/issues/2713). If your team heavily uses Drone tokens in their build process (to trigger downstream builds, etc) you may find this helpful.
+
+```shell
+$ docker run -e [...] drone/migrate dump-tokens
+```

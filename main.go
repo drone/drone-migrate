@@ -417,6 +417,22 @@ func main() {
 				)
 			},
 		},
+		{
+			Name:  "dump-tokens",
+			Usage: "dump user tokens to stdout",
+			Action: func(c *cli.Context) error {
+				source, err := sql.Open(
+					c.GlobalString("source-database-driver"),
+					c.GlobalString("source-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.DumpTokens(source, os.Stdout)
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {

@@ -2,7 +2,9 @@ package migrate
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/dchest/uniuri"
@@ -80,6 +82,25 @@ func MigrateUsers(source, target *sql.DB) error {
 
 	logrus.Infoln("migration complete")
 	return tx.Commit()
+}
+
+// DumpTokens dumps the database tokens from the V0
+// database to io.Writer w in JSON format.
+func DumpTokens(source *sql.DB, w io.Writer) error {
+	usersV0 := []*UserV0{}
+
+	if err := meddler.QueryAll(source, &usersV0, userImportQuery); err != nil {
+		return err
+	}
+
+	tokens := map[string]string{}
+	for _, userV0 := range usersV0 {
+		tokens[userV0.Login] = userV0.Hash
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(tokens)
 }
 
 const userImportQuery = `
