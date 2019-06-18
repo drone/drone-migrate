@@ -1,5 +1,7 @@
 Migration utility will help you migrate from a Drone 0.8.x database to a Drone 1.0.x database.
 
+___Please note the migration utility may require manual database cleanup.___ For example, in 0.8 the same repository can be listed in the database twice if it has been renamed, however, in 1.0 this will cause unique key violations. These edge cases require manual intevention. You should therefore be comfortable with sql and database troubleshooting before you proceed.
+
 ## Preparing for the migration
 
 1. create a full backup of your 0.8.x Drone database
