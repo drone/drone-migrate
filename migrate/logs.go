@@ -117,7 +117,11 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix, endpoint string, pathStyle bo
 		}
 		_, err = uploader.Upload(input)
 		if err != nil {
-			logrus.WithError(err).Errorln("migration failed")
+			logrus.WithFields(logrus.Fields{
+				"proc_id": logsV0.ProcID,
+				"step_id": stepV0.ID,
+				"bucket":  bucket,
+			}).WithError(err).Errorln("migration failed")
 			return err
 		}
 	}
