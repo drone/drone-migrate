@@ -103,6 +103,16 @@ func main() {
 			Usage:  "s3 path prefix (optional)",
 			EnvVar: "S3_PREFIX",
 		},
+		cli.StringFlag{
+			Name:   "s3-endpoint",
+			Usage:  "s3 endpoint (optional)",
+			EnvVar: "S3_ENDPOINT",
+		},
+		cli.BoolFlag{
+			Name:   "s3-path-style",
+			Usage:  "s3 path style (optional)",
+			EnvVar: "S3_PATH_STYLE",
+		},
 		cli.BoolTFlag{
 			Name:   "debug",
 			Usage:  "enable debug mode",
@@ -343,9 +353,12 @@ func main() {
 					return err
 				}
 
-				bucket := c.String("s3-bucket")
-				prefix := c.String("s3-prefix")
-				return migrate.MigrateLogsS3(source, bucket, prefix)
+				return migrate.MigrateLogsS3(
+					source,
+					c.GlobalString("s3-bucket"),
+					c.GlobalString("s3-prefix"),
+					c.GlobalString("s3-endpoint"),
+					c.GlobalBool("s3-path-style"))
 			},
 		},
 		{

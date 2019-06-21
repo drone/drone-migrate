@@ -3,8 +3,10 @@ package migrate
 import (
 	"bytes"
 	"database/sql"
+	"errors"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -64,7 +66,10 @@ func MigrateLogs(source, target *sql.DB) error {
 }
 
 // MigrateLogsS3 migrates the steps from the V0 database to S3.
-func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
+func MigrateLogsS3(source *sql.DB, bucket, prefix, endpoint string, pathStyle bool) error {
+	if bucket == "" {
+		return errors.New("bucket is required")
+	}
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
@@ -75,12 +80,18 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
 
 	logrus.Infof("migrating %d logs", len(stepsV0))
 
+	disableSSL := false
+
+	if endpoint != "" {
+		disableSSL = !strings.HasPrefix(endpoint, "https://")
+	}
+
 	// 2. create the s3 client
 	sess := session.Must(
 		session.NewSession(&aws.Config{
-			// Endpoint:         aws.String(endpoint),
-			// DisableSSL:       aws.Bool(disableSSL),
-			// S3ForcePathStyle: aws.Bool(pathStyle),
+			Endpoint:         aws.String(endpoint),
+			DisableSSL:       aws.Bool(disableSSL),
+			S3ForcePathStyle: aws.Bool(pathStyle),
 		}),
 	)
 
