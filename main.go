@@ -343,9 +343,19 @@ func main() {
 					return err
 				}
 
-				bucket := c.String("s3-bucket")
-				prefix := c.String("s3-prefix")
-				return migrate.MigrateLogsS3(source, bucket, prefix)
+				target, err := sql.Open(
+					c.GlobalString("target-database-driver"),
+					c.GlobalString("target-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.MigrateLogsS3(
+					source, target,
+					c.GlobalString("s3-bucket"),
+					c.GlobalString("s3-prefix"))
 			},
 		},
 		{
