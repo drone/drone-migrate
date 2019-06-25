@@ -296,6 +296,12 @@ type (
 		Token        string `meddler:"registry_token"`
 	}
 
+	// LastMigratedLogID is a last migrated log id.
+	LastMigratedLogID struct {
+		ID    int64 `meddler:"id,pk"`
+		LogID int64 `meddler:"log_id"`
+	}
+
 	// DockerConfig defines required attributes from Docker registry credentials.
 	DockerConfig struct {
 		AuthConfigs map[string]AuthConfig `json:"auths"`

@@ -120,6 +120,14 @@ var migrations = []struct {
 		name: "create-table-org-secrets",
 		stmt: createTableOrgSecrets,
 	},
+	{
+		name: "create-table-last-migrated-log-id",
+		stmt: createTableLastMigratedLogID,
+	},
+	{
+		name: "create-record-last-migrated-log-id",
+		stmt: createRecordLastMigratedLogID,
+	},
 }
 
 // Migrate performs the database migration. If the migration fails
@@ -554,4 +562,24 @@ CREATE TABLE IF NOT EXISTS orgsecrets (
 ,secret_pull_request_push BOOLEAN
 ,UNIQUE(secret_namespace, secret_name)
 );
+`
+
+//
+// 013_create_table_last_migrated_log_id.sql
+//
+
+var createTableLastMigratedLogID = `
+CREATE TABLE IF NOT EXISTS last_migrated_log_id (
+ id     INTEGER PRIMARY KEY
+,log_id INTEGER
+);
+`
+
+//
+// 014_create_record_last_migrated_log_id.sql
+//
+
+var createRecordLastMigratedLogID = `
+INSERT INTO last_migrated_log_id (id, log_id) VALUES (1, -1)
+ON CONFLICT DO NOTHING;
 `

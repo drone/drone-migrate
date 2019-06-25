@@ -64,11 +64,29 @@ func MigrateLogs(source, target *sql.DB) error {
 }
 
 // MigrateLogsS3 migrates the steps from the V0 database to S3.
-func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
+func MigrateLogsS3(source, target *sql.DB, bucket, prefix string) error {
 	stepsV0 := []*StepV0{}
 
+	// get the last migrated log id
+	lastMigratedLog := &LastMigratedLogID{}
+	if err := meddler.QueryRow(target, lastMigratedLog, lastMigratedLogIDQuery); err != nil {
+		return err
+	}
+	lastMigratedLogID := lastMigratedLog.LogID
+
+	defer func() {
+		err := meddler.Update(target, "last_migrated_log_id", &LastMigratedLogID{
+			ID:    1,
+			LogID: lastMigratedLogID,
+		})
+		if err != nil {
+			logrus.WithError(err).Warnf("cannot update last migrated log id: %d", lastMigratedLogID)
+		}
+	}()
+
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, stepListQuery)
+	err := meddler.QueryAll(
+		source, &stepsV0, stepListFilterByIDQuery, lastMigratedLogID)
 	if err != nil {
 		return err
 	}
@@ -109,6 +127,7 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
 			logrus.WithError(err).Errorln("migration failed")
 			return err
 		}
+		lastMigratedLogID = logsV0.ProcID
 	}
 
 	logrus.Infof("migration complete")

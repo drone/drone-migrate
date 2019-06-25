@@ -86,7 +86,23 @@ WHERE proc_ppid != 0
   AND repo_user_id > 0
 `
 
+const stepListFilterByIDQuery = `
+SELECT procs.*
+FROM procs
+INNER JOIN builds ON procs.proc_build_id = builds.build_id
+INNER JOIN repos ON builds.build_repo_id = repos.repo_id
+WHERE proc_ppid != 0
+  AND repo_user_id > 0
+  AND proc_id > ?
+ORDER BY proc_id
+`
+
 const updateStepSeq = `
 ALTER SEQUENCE steps_step_id_seq
 RESTART WITH %d
+`
+
+const lastMigratedLogIDQuery = `
+SELECT log_id FROM last_migrated_log_id
+WHERE id = 1
 `
