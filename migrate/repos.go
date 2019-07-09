@@ -199,8 +199,7 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 		client.SetClient(config.Client(
 			oauth2.NoContext,
 			&oauth2.Token{
-				AccessToken:  user.Token,
-				RefreshToken: user.Refresh,
+				AccessToken: user.Hash,
 			},
 		))
 
