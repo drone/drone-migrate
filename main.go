@@ -103,6 +103,11 @@ func main() {
 			Usage:  "s3 path prefix (optional)",
 			EnvVar: "S3_PREFIX",
 		},
+		cli.Int64Flag{
+			Name:   "s3-resume",
+			Usage:  "resume uploading logs at this step id (optional)",
+			EnvVar: "S3_RESUME",
+		},
 		cli.BoolTFlag{
 			Name:   "debug",
 			Usage:  "enable debug mode",
@@ -343,9 +348,10 @@ func main() {
 					return err
 				}
 
+				resume := c.GlobalInt64("s3-resume")
 				bucket := c.GlobalString("s3-bucket")
 				prefix := c.GlobalString("s3-prefix")
-				return migrate.MigrateLogsS3(source, bucket, prefix)
+				return migrate.MigrateLogsS3(source, bucket, prefix, resume)
 			},
 		},
 		{

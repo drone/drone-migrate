@@ -64,7 +64,7 @@ func MigrateLogs(source, target *sql.DB) error {
 }
 
 // MigrateLogsS3 migrates the steps from the V0 database to S3.
-func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
+func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
@@ -98,6 +98,9 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
 		}
 		if len(logsV0.Data) == 0 {
 			logrus.WithError(err).Warnf("skipping empty logs for step: id: %d", stepV0.ID)
+			continue
+		}
+		if resume >= stepV0.ID {
 			continue
 		}
 
