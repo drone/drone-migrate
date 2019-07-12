@@ -96,6 +96,10 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
 			logrus.WithError(err).Warnf("cannot find logs for step: id: %d", stepV0.ID)
 			continue
 		}
+		if len(logsV0.Data) == 0 {
+			logrus.WithError(err).Warnf("skipping empty logs for step: id: %d", stepV0.ID)
+			continue
+		}
 
 		uploader := s3manager.NewUploader(sess)
 		input := &s3manager.UploadInput{
