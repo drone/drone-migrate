@@ -101,6 +101,8 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string) error {
 			continue
 		}
 
+		logrus.Debugf("uploading logs for step: %d", stepV0.ID)
+
 		uploader := s3manager.NewUploader(sess)
 		input := &s3manager.UploadInput{
 			ACL:    aws.String("private"),
