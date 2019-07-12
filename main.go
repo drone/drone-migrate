@@ -343,8 +343,8 @@ func main() {
 					return err
 				}
 
-				bucket := c.String("s3-bucket")
-				prefix := c.String("s3-prefix")
+				bucket := c.GlobalString("s3-bucket")
+				prefix := c.GlobalString("s3-prefix")
 				return migrate.MigrateLogsS3(source, bucket, prefix)
 			},
 		},
@@ -502,8 +502,8 @@ func createClient(c *cli.Context) (*scm.Client, error) {
 		client.Client = &http.Client{
 			Transport: &oauth2.Transport{
 				Source: &oauth2.Refresher{
-					ClientID:     c.String("bitbucket-client-id"),
-					ClientSecret: c.String("bitbucket-client-secret"),
+					ClientID:     c.GlobalString("bitbucket-client-id"),
+					ClientSecret: c.GlobalString("bitbucket-client-secret"),
 					Endpoint:     "https://bitbucket.org/site/oauth2/access_token",
 					Source:       oauth2.ContextTokenSource(),
 				},
@@ -527,7 +527,7 @@ func createClient(c *cli.Context) (*scm.Client, error) {
 		return client, nil
 	case "stash":
 		privateKey, err := parsePrivateKeyFile(
-			c.String("stash-private-key-file"),
+			c.GlobalString("stash-private-key-file"),
 		)
 
 		if err != nil {
@@ -542,7 +542,7 @@ func createClient(c *cli.Context) (*scm.Client, error) {
 
 		client.Client = &http.Client{
 			Transport: &oauth1.Transport{
-				ConsumerKey: c.String("stash-consumer-key"),
+				ConsumerKey: c.GlobalString("stash-consumer-key"),
 				PrivateKey:  privateKey,
 				Source:      oauth1.ContextTokenSource(),
 			},
@@ -556,6 +556,8 @@ func createClient(c *cli.Context) (*scm.Client, error) {
 // parsePrivateKeyFile is a helper function that parses an
 // RSA Private Key file encoded in PEM format.
 func parsePrivateKeyFile(path string) (*rsa.PrivateKey, error) {
+	logrus.Debugf("private key file: %s", path)
+
 	d, err := ioutil.ReadFile(path)
 
 	if err != nil {
