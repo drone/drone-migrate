@@ -19,7 +19,7 @@ func MigrateLogs(source, target *sql.DB) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, stepListQuery)
+	err := meddler.QueryAll(source, &stepsV0, stepListQueryLogs)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, stepListQuery)
+	err := meddler.QueryAll(source, &stepsV0, stepListQueryLogs)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
 
 	// 3. iterate through the list and convert from
 	// the 0.x to the 1.x structure and insert.
-	for _, stepV0 := range stepsV0 {
+	for i, stepV0 := range stepsV0 {
 		logsV0 := &LogsV0{}
 		err := meddler.QueryRow(source, logsV0, fmt.Sprintf("select * from logs where log_job_id = %d", stepV0.ID))
 		if err == sql.ErrNoRows {
@@ -118,6 +118,9 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
 			logrus.WithError(err).Errorln("migration failed")
 			return err
 		}
+		if i%1000 == 0 {
+			logrus.Infof("uploaded: %d", stepV0.ID)
+		}
 	}
 
 	logrus.Infof("migration complete")
@@ -127,3 +130,13 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
 func s3key(prefix string, step int64) string {
 	return path.Join("/", prefix, fmt.Sprint(step))
 }
+
+const stepListQueryLogs = `
+SELECT procs.*
+FROM procs
+INNER JOIN builds ON procs.proc_build_id = builds.build_id
+INNER JOIN repos ON builds.build_repo_id = repos.repo_id
+WHERE proc_ppid != 0
+  AND repo_user_id > 0
+ORDER BY proc_id ASC
+`
