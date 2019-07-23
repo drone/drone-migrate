@@ -181,6 +181,10 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 		log := logrus.WithFields(logrus.Fields{
 			"repo": repo.Slug,
 		})
+		if !repo.Active {
+			// https://discourse.drone.io/t/drone-migrates-repoactivatequery-is-invalid/5156
+			continue
+		}
 
 		log.Debugln("activating repository")
 
@@ -243,7 +247,6 @@ WHERE repo_id = %d
 const repoActivateQuery = `
 SELECT *
 FROM repos
-WHERE repo_active = 1
 `
 
 const updateRepoSeq = `
