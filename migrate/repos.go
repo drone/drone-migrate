@@ -243,6 +243,7 @@ WHERE repo_id = %d
 const repoActivateQuery = `
 SELECT *
 FROM repos
+WHERE repo_active = 1
 `
 
 const updateRepoSeq = `
