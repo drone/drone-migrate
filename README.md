@@ -98,6 +98,14 @@ The final step is to re-activate your repositories. At this time it is safe to s
 $ docker run -e [...] drone/migrate activate-repos
 ```
 
+## Optional Migration Steps
+
+You may optionally run the following commands to purge repositories from the 1.0 database where the repository no longer exists, the repository owner no longer has access, or where the repository has been renamed. We recommend running after `migrate-repos`.
+
+```
+$ docker run -e [...] drone/migrate remove-renamed
+```
+
 # Execution Individual Commands
 
 This can be helpful if a particular migration step fails. You can safely truncate the impacted database table and then re-try the migration.

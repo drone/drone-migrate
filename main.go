@@ -235,6 +235,68 @@ func main() {
 			},
 		},
 		{
+			Name:  "remove-renamed",
+			Usage: "remove renamed repositories",
+			Action: func(c *cli.Context) error {
+				var (
+					driver     = c.GlobalString("target-database-driver")
+					datasource = c.GlobalString("target-database-datasource")
+					provider   = c.GlobalString("scm-driver")
+					server     = c.GlobalString("scm-server")
+				)
+
+				logrus.Debugf("target database driver: %s", driver)
+				logrus.Debugf("target database datasource: %s", datasource)
+				logrus.Debugf("scm driver: %s", provider)
+				logrus.Debugf("scm server: %s", server)
+
+				target, err := sql.Open(driver, datasource)
+
+				if err != nil {
+					return err
+				}
+
+				client, err := createClient(c)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.RemoveRenamed(target, client)
+			},
+		},
+		{
+			Name:  "remove-not-found",
+			Usage: "remove not found repositories",
+			Action: func(c *cli.Context) error {
+				var (
+					driver     = c.GlobalString("target-database-driver")
+					datasource = c.GlobalString("target-database-datasource")
+					provider   = c.GlobalString("scm-driver")
+					server     = c.GlobalString("scm-server")
+				)
+
+				logrus.Debugf("target database driver: %s", driver)
+				logrus.Debugf("target database datasource: %s", datasource)
+				logrus.Debugf("scm driver: %s", provider)
+				logrus.Debugf("scm server: %s", server)
+
+				target, err := sql.Open(driver, datasource)
+
+				if err != nil {
+					return err
+				}
+
+				client, err := createClient(c)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.RemoveNotFound(target, client)
+			},
+		},
+		{
 			Name:  "migrate-builds",
 			Usage: "migrate drone builds",
 			Action: func(c *cli.Context) error {

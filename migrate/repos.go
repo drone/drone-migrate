@@ -220,6 +220,122 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 	return result
 }
 
+// RemoveRenamed removes repositories that have been renamed
+// or cannot be found in the remote system.
+func RemoveRenamed(db *sql.DB, client *scm.Client) error {
+	repos := []*RepoV1{}
+	var result error
+
+	if err := meddler.QueryAll(db, &repos, repoTempQuery); err != nil {
+		return err
+	}
+
+	logrus.Infoln("removing renamed repositories")
+
+	for _, repo := range repos {
+		log := logrus.WithFields(logrus.Fields{
+			"repo": repo.Slug,
+		})
+
+		user := &UserV1{}
+
+		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
+			log.WithError(err).Errorf("failed to get repository owner")
+			multierror.Append(result, err)
+			continue
+		}
+
+		log = log.WithField("owner", user.Login)
+
+		tok := &scm.Token{
+			Token:   user.Token,
+			Refresh: user.Refresh,
+		}
+		if user.Expiry > 0 {
+			tok.Expires = time.Unix(user.Expiry, 0)
+		}
+		ctx := scm.WithContext(context.Background(), tok)
+
+		remoteRepo, _, err := client.Repositories.Find(ctx, scm.Join(repo.Namespace, repo.Name))
+
+		if err != nil {
+			log.WithError(err).Errorf("failed to get remote repository")
+			multierror.Append(result, err)
+			continue
+		}
+
+		if scm.Join(remoteRepo.Namespace, remoteRepo.Namespace) == repo.Slug {
+			log.Debugln("skip repository, found in remote system")
+			continue
+		}
+
+		if _, err := db.Exec(fmt.Sprintf(deleteRepo, repo.ID)); err != nil {
+			log.WithError(err).Errorf("failed to remove repository")
+			multierror.Append(result, err)
+		}
+
+		log.Debugln("renamed repository removed")
+	}
+
+	logrus.Infoln("repository removal complete")
+	return result
+}
+
+// RemoveNotFound removes repositories that are not found
+// in the remote system.
+func RemoveNotFound(db *sql.DB, client *scm.Client) error {
+	repos := []*RepoV1{}
+	var result error
+
+	if err := meddler.QueryAll(db, &repos, repoTempQuery); err != nil {
+		return err
+	}
+
+	logrus.Infoln("removing not found repositories")
+
+	for _, repo := range repos {
+		log := logrus.WithFields(logrus.Fields{
+			"repo": repo.Slug,
+		})
+
+		user := &UserV1{}
+
+		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
+			log.WithError(err).Errorf("failed to get repository owner")
+			multierror.Append(result, err)
+			continue
+		}
+
+		log = log.WithField("owner", user.Login)
+
+		tok := &scm.Token{
+			Token:   user.Token,
+			Refresh: user.Refresh,
+		}
+		if user.Expiry > 0 {
+			tok.Expires = time.Unix(user.Expiry, 0)
+		}
+		ctx := scm.WithContext(context.Background(), tok)
+
+		_, _, err := client.Repositories.Find(ctx, scm.Join(repo.Namespace, repo.Name))
+
+		if err == nil {
+			log.Debugln("skip repository, found in remote system")
+			continue
+		}
+
+		if _, err := db.Exec(fmt.Sprintf(deleteRepo, repo.ID)); err != nil {
+			log.WithError(err).Errorf("failed to remove repository")
+			multierror.Append(result, err)
+		}
+
+		log.Debugln("not found repository removed")
+	}
+
+	logrus.Infoln("repository removal complete")
+	return result
+}
+
 const repoImportQuery = `
 SELECT *
 FROM repos
@@ -252,4 +368,8 @@ FROM repos
 const updateRepoSeq = `
 ALTER SEQUENCE repos_repo_id_seq
 RESTART WITH %d
+`
+
+const deleteRepo = `
+DELETE FROM repos WHERE repo_id = %d
 `
