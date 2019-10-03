@@ -264,7 +264,7 @@ func RemoveRenamed(db *sql.DB, client *scm.Client) error {
 			continue
 		}
 
-		remoteName := scm.Join(remoteRepo.Namespace, remoteRepo.Namespace)
+		remoteName := scm.Join(remoteRepo.Namespace, remoteRepo.Name)
 		if remoteName == repo.Slug {
 			log.Debugln("skip repository, found in remote system")
 			continue
