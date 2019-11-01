@@ -72,14 +72,14 @@ func MigrateRegistries(source, target *sql.DB) error {
 			continue
 		}
 
-		secretV1 := &SecretV1{
+		registryV1 := &RegistryV1{
 			RepoID:      repoV1.ID,
 			Name:        ".dockerconfigjson",
 			Data:        string(result),
 			PullRequest: true,
 		}
 
-		if err := meddler.Insert(tx, "secrets", secretV1); err != nil {
+		if err := meddler.Insert(tx, "secrets", registryV1); err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
 		}

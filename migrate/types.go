@@ -295,6 +295,16 @@ type (
 		Password     string `meddler:"registry_password"`
 		Token        string `meddler:"registry_token"`
 	}
+	
+	// RegistryV1 is a Drone 1.x registry -- note that in 1.x these are stored in the secrets table, hence the similar format
+	RegistryV1 struct {
+		ID              int64  `meddler:"secret_id,pk"`
+		RepoID          int64  `meddler:"secret_repo_id"`
+		Name            string `meddler:"secret_name"`
+		Data            string `meddler:"secret_data"`
+		PullRequest     bool   `meddler:"secret_pull_request"`
+		PullRequestPush bool   `meddler:"secret_pull_request_push"`
+	}
 
 	// DockerConfig defines required attributes from Docker registry credentials.
 	DockerConfig struct {
