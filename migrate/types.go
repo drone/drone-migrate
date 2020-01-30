@@ -89,6 +89,8 @@ type (
 		Protected   bool   `meddler:"repo_protected"`
 		IgnoreForks bool   `meddler:"repo_no_forks"`
 		IgnorePulls bool   `meddler:"repo_no_pulls"`
+		CancelPulls bool   `meddler:"repo_cancel_pulls"`
+		CancelPush  bool   `meddler:"repo_cancel_push"`
 		Timeout     int64  `meddler:"repo_timeout"`
 		Counter     int64  `meddler:"repo_counter"`
 		Synced      int64  `meddler:"repo_synced"`
