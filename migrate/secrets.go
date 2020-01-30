@@ -97,6 +97,11 @@ func EncryptSecrets(target *sql.DB, key string) error {
 
 	defer tx.Rollback()
 
+	updateStmt := updateSecretStmt
+	if meddler.Default == meddler.PostgreSQL {
+		updateStmt = updateSecretStmtPostgres
+	}
+
 	for _, secretV1 := range secretsV1 {
 		ciphertext, err := encrypt(block, secretV1.Data)
 		if err != nil {
@@ -105,7 +110,7 @@ func EncryptSecrets(target *sql.DB, key string) error {
 		}
 
 		secretV1.Data = string(ciphertext)
-		if err := meddler.Update(tx, "secrets", secretV1); err != nil {
+		if _, err := tx.Exec(updateStmt, secretV1.Data, secretV1.ID); err != nil {
 			logrus.WithError(err).Errorln("update failed")
 			return err
 		}
@@ -136,4 +141,16 @@ WHERE repo_slug = '%s'
 const updateSecretsSeq = `
 ALTER SEQUENCE secrets_secret_id_seq
 RESTART WITH %d
+`
+
+const updateSecretStmt = `
+UPDATE secrets
+SET secret_data = ?
+WHERE secret_id = ?
+`
+
+const updateSecretStmtPostgres = `
+UPDATE secrets
+SET secret_data = $1
+WHERE secret_id = $2
 `

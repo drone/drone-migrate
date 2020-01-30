@@ -323,7 +323,7 @@ type (
 
 	// PermV1 represents an individuals repository permission.
 	PermV1 struct {
-		UserID  int64  `meddler:"perm_user_id,pk"`
+		UserID  int64  `meddler:"perm_user_id"`
 		RepoUID string `meddler:"perm_repo_uid"`
 		Read    bool   `meddler:"perm_read"`
 		Write   bool   `meddler:"perm_write"`
