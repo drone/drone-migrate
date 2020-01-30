@@ -1,6 +1,6 @@
 Migration utility will help you migrate from a Drone 0.8.x database to a Drone 1.0.x database.
 
-___Please note the migration utility may require manual database cleanup.___ For example, in 0.8 the same repository can be listed in the database twice if it has been renamed, however, in 1.0 this will cause unique key violations. These edge cases require manual intevention. You should therefore be comfortable with sql and database troubleshooting before you proceed.
+___Please note the migration utility may require manual database cleanup.___ For example, in 0.8 the same repository can be listed in the database twice if it has been renamed, however, in 1.0 this will cause unique key violations. These edge cases require manual intervention. You should therefore be comfortable with sql and database troubleshooting before you proceed.
 
 ## Preparing for the migration
 
@@ -92,18 +92,22 @@ $ docker run -e [...] drone/migrate migrate-logs
 $ docker run -e [...] drone/migrate update-repos
 ```
 
-The final step is to re-activate your repositories. At this time it is safe to start your Drone server. Once the server is started you can execute the final migration command:
+## Optional Migration Step
 
-```
-$ docker run -e [...] drone/migrate activate-repos
-```
-
-## Optional Migration Steps
+_This should be run before the final step_
 
 You may optionally run the following commands to purge repositories from the 1.0 database where the repository no longer exists, the repository owner no longer has access, or where the repository has been renamed. We recommend running after `migrate-repos`.
 
 ```
 $ docker run -e [...] drone/migrate remove-renamed
+```
+
+## Final Migration Step
+
+The final step is to re-activate your repositories. At this time it is safe to start your Drone server. Once the server is started you can execute the final migration command:
+
+```
+$ docker run -e [...] drone/migrate activate-repos
 ```
 
 # Execution Individual Commands

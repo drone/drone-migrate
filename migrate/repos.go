@@ -198,6 +198,24 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 
 		log = log.WithField("owner", user.Login)
 
+		// make sure an entry exists in the permission table
+		// to ensure the user can activate the repository.
+		permV1 := &PermV1{
+			UserID:  user.ID,
+			RepoUID: repo.UID,
+			Read:    true,
+			Write:   true,
+			Admin:   true,
+			Synced:  time.Now().Unix(),
+			Created: time.Now().Unix(),
+			Updated: time.Now().Unix(),
+		}
+		if err := meddler.Insert(db, "perms", permV1); err != nil {
+			log.WithError(err).Debugln("cannot insert permissions. permissions may already exist.")
+		} else {
+			log.Debugln("successfully inserted permissions")
+		}
+
 		config := new(oauth2.Config)
 
 		client.SetClient(config.Client(

@@ -25,6 +25,14 @@ var migrations = []struct {
 		stmt: alterTableReposAddColumnNoPulls,
 	},
 	{
+		name: "alter-table-repos-add-column-cancel-pulls",
+		stmt: alterTableReposAddColumnCancelPulls,
+	},
+	{
+		name: "alter-table-repos-add-column-cancel-push",
+		stmt: alterTableReposAddColumnCancelPush,
+	},
+	{
 		name: "create-table-perms",
 		stmt: createTablePerms,
 	},
@@ -119,6 +127,10 @@ var migrations = []struct {
 	{
 		name: "create-table-org-secrets",
 		stmt: createTableOrgSecrets,
+	},
+	{
+		name: "alter-table-builds-add-column-deploy-id",
+		stmt: alterTableBuildsAddColumnDeployId,
 	},
 }
 
@@ -264,6 +276,14 @@ ALTER TABLE repos ADD COLUMN repo_no_forks BOOLEAN NOT NULL DEFAULT 0;
 
 var alterTableReposAddColumnNoPulls = `
 ALTER TABLE repos ADD COLUMN repo_no_pulls BOOLEAN NOT NULL DEFAULT 0;
+`
+
+var alterTableReposAddColumnCancelPulls = `
+ALTER TABLE repos ADD COLUMN repo_cancel_pulls BOOLEAN NOT NULL DEFAULT 0;
+`
+
+var alterTableReposAddColumnCancelPush = `
+ALTER TABLE repos ADD COLUMN repo_cancel_push BOOLEAN NOT NULL DEFAULT 0;
 `
 
 //
@@ -556,4 +576,12 @@ CREATE TABLE IF NOT EXISTS orgsecrets (
 ,secret_pull_request_push BOOLEAN
 ,UNIQUE(secret_namespace, secret_name)
 );
+`
+
+//
+// 013_add_column_builds_deploy_id.sql
+//
+
+var alterTableBuildsAddColumnDeployId = `
+ALTER TABLE builds ADD COLUMN build_deploy_id NUMBER NOT NULL DEFAULT 0;
 `

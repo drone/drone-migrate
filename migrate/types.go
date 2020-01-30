@@ -295,7 +295,7 @@ type (
 		Password     string `meddler:"registry_password"`
 		Token        string `meddler:"registry_token"`
 	}
-	
+
 	// RegistryV1 is a Drone 1.x registry -- note that in 1.x these are stored in the secrets table, hence the similar format
 	RegistryV1 struct {
 		ID              int64  `meddler:"secret_id,pk"`
@@ -317,6 +317,18 @@ type (
 		Username string `json:"username,omitempty"`
 		Password string `json:"password,omitempty"`
 		Auth     string `json:"auth,omitempty"`
+	}
+
+	// PermV1 represents an individuals repository permission.
+	PermV1 struct {
+		UserID  int64  `meddler:"perm_user_id,pk"`
+		RepoUID string `meddler:"perm_repo_uid"`
+		Read    bool   `meddler:"perm_read"`
+		Write   bool   `meddler:"perm_write"`
+		Admin   bool   `meddler:"perm_admin"`
+		Synced  int64  `meddler:"perm_synced"`
+		Created int64  `meddler:"perm_created"`
+		Updated int64  `meddler:"perm_updated"`
 	}
 )
 

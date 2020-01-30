@@ -25,6 +25,14 @@ var migrations = []struct {
 		stmt: alterTableReposAddColumnNoPulls,
 	},
 	{
+		name: "alter-table-repos-add-column-cancel-pulls",
+		stmt: alterTableReposAddColumnCancelPulls,
+	},
+	{
+		name: "alter-table-repos-add-column-cancel-push",
+		stmt: alterTableReposAddColumnCancelPush,
+	},
+	{
 		name: "create-table-perms",
 		stmt: createTablePerms,
 	},
@@ -123,6 +131,10 @@ var migrations = []struct {
 	{
 		name: "create-table-org-secrets",
 		stmt: createTableOrgSecrets,
+	},
+	{
+		name: "alter-table-builds-add-column-deploy-id",
+		stmt: alterTableBuildsAddColumnDeployId,
 	},
 }
 
@@ -270,6 +282,14 @@ var alterTableReposAddColumnNoPulls = `
 ALTER TABLE repos ADD COLUMN repo_no_pulls BOOLEAN NOT NULL DEFAULT false;
 `
 
+var alterTableReposAddColumnCancelPulls = `
+ALTER TABLE repos ADD COLUMN repo_cancel_pulls BOOLEAN NOT NULL DEFAULT false;
+`
+
+var alterTableReposAddColumnCancelPush = `
+ALTER TABLE repos ADD COLUMN repo_cancel_push BOOLEAN NOT NULL DEFAULT false;
+`
+
 //
 // 003_create_table_perms.sql
 //
@@ -364,7 +384,7 @@ CREATE TABLE IF NOT EXISTS stages (
 ,stage_repo_id     INTEGER
 ,stage_build_id    INTEGER
 ,stage_number      INTEGER
-,stage_name        VARCHAR(50)
+,stage_name        VARCHAR(100)
 ,stage_kind        VARCHAR(50)
 ,stage_type        VARCHAR(50)
 ,stage_status      VARCHAR(50)
@@ -576,4 +596,12 @@ CREATE TABLE IF NOT EXISTS orgsecrets (
 ,secret_pull_request_push BOOLEAN
 ,UNIQUE(secret_namespace, secret_name)
 );
+`
+
+//
+// 013_add_column_builds_deploy_id.sql
+//
+
+var alterTableBuildsAddColumnDeployId = `
+ALTER TABLE builds ADD COLUMN build_deploy_id INTEGER NOT NULL DEFAULT 0;
 `
