@@ -92,7 +92,7 @@ $ docker run -e [...] drone/migrate migrate-logs
 $ docker run -e [...] drone/migrate update-repos
 ```
 
-## Optional Migration Step
+## Optional Migration Steps
 
 _This should be run before the final step_
 
@@ -100,6 +100,13 @@ You may optionally run the following commands to purge repositories from the 1.0
 
 ```
 $ docker run -e [...] drone/migrate remove-renamed
+```
+
+You can also optionally configure secret encryption in Drone 1.0. If yuo enable encryption you will need to encrypt the secrets before you complete the migration.
+
+```
+$ export TARGET_DATABASE_ENCRYPTION_KEY=....
+$ docker run -e [...] -e drone-drone/migrate encrypt-secrets
 ```
 
 ## Final Migration Step

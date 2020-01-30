@@ -59,6 +59,11 @@ func main() {
 			EnvVar: "TARGET_DATABASE_DATASOURCE",
 		},
 		cli.StringFlag{
+			Name:   "target-database-encryption-key",
+			Usage:  "target database-encryption-key",
+			EnvVar: "TARGET_DATABASE_ENCRYPTION_KEY",
+		},
+		cli.StringFlag{
 			Name:   "drone-server",
 			Usage:  "target drone server address",
 			EnvVar: "DRONE_SERVER",
@@ -482,6 +487,25 @@ func main() {
 				return migrate.ActivateRepositories(
 					target,
 					drone.New(c.GlobalString("drone-server")),
+				)
+			},
+		},
+		{
+			Name:  "encrypt-secrets",
+			Usage: "encrypt secret in the target database",
+			Action: func(c *cli.Context) error {
+				target, err := sql.Open(
+					c.GlobalString("target-database-driver"),
+					c.GlobalString("target-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.EncryptSecrets(
+					target,
+					c.GlobalString("target-database-encryption-key"),
 				)
 			},
 		},
