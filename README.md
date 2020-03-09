@@ -220,6 +220,14 @@ Keep in mind, the default path in container for v0.8 is `/var/lib/drone/db/drone
 
 Remember to update the authorization callback URL from [/authorize](https://0-8-0.docs.drone.io/install-for-github/) to [/login](https://docs.drone.io/server/provider/github/), or you can create a new one.
 
+## Update provider's webhook token (Optional)
+
+If the webhook is failing with error `signature is invalid`, you can manually re-enable the repo to update the token. See [issue]( https://discourse.drone.io/t/solved-gogs-webhook-to-drone-is-failing-with-http-400-errors/224/2)
+
+1. Remove the hook from provider (Github, Gogs, ...)
+2. Disable the repository in Drone
+3. Re-enable the repository in Drone
+
 ## Start server and runners
 
 See [official docs site](https://docs.drone.io/)
