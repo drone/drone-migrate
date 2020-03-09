@@ -209,3 +209,13 @@ You can optionally dump 0.8 user API tokens for use with 1.0 as described [here]
 ```shell
 $ docker run -e [...] drone/migrate dump-tokens
 ```
+
+# Others
+
+## Update provider's callback URL
+
+Remember to update the authorization callback URL from [/authorize](https://0-8-0.docs.drone.io/install-for-github/) to [/login](https://docs.drone.io/server/provider/github/), or you can create a new one.
+
+## Start server and runners
+
+See [official docs site](https://docs.drone.io/)
