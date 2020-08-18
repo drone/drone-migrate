@@ -92,22 +92,24 @@ $ docker run -e [...] drone/migrate migrate-logs
 $ docker run -e [...] drone/migrate update-repos
 ```
 
-## Optional Migration Steps
+## Optional Encryption
 
-_This should be run before the final step_
-
-You may optionally run the following commands to purge repositories from the 1.0 database where the repository no longer exists, the repository owner no longer has access, or where the repository has been renamed. We recommend running after `migrate-repos`.
-
-```
-$ docker run -e [...] drone/migrate remove-renamed
-$ docker run -e [...] drone/migrate remove-not-found
-```
-
-You can also optionally configure secret encryption in Drone 1.0. If yuo enable encryption you will need to encrypt the secrets before you complete the migration.
+You can also optionally [configure](https://docs.drone.io/server/storage/encryption/) secret encryption in Drone 1.0. If you plan on enabling encryption you will need to encrypt the secrets before you complete the migration.
 
 ```
 $ export TARGET_DATABASE_ENCRYPTION_KEY=....
 $ docker run -e [...] -e drone-drone/migrate encrypt-secrets
+```
+
+## Optional Cleanup
+
+_This should be run before the final step_
+
+You may optionally run the following commands to purge repositories from the 1.0 database where the repository no longer exists, the repository owner no longer has access, or where the repository has been renamed.
+
+```
+$ docker run -e [...] drone/migrate remove-renamed
+$ docker run -e [...] drone/migrate remove-not-found
 ```
 
 ## Final Migration Step
@@ -120,7 +122,7 @@ $ docker run -e [...] drone/migrate activate-repos
 
 ## Final Check
 
-The migration is not considered complete until all steps are completed and the below sql query returns an empty result set.  If the below query does not return an empty result set you should execute the `remove-renamed` and `remove-not-found` migration steps.
+The migration is not considered complete until all steps are completed and the below sql query returns an empty result set.  If the below query does not return an empty result set you should execute the optional `remove-renamed` and `remove-not-found` migration steps.
 
 ```text
 SELECT *
