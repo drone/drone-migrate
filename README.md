@@ -100,6 +100,7 @@ You may optionally run the following commands to purge repositories from the 1.0
 
 ```
 $ docker run -e [...] drone/migrate remove-renamed
+$ docker run -e [...] drone/migrate remove-not-found
 ```
 
 You can also optionally configure secret encryption in Drone 1.0. If yuo enable encryption you will need to encrypt the secrets before you complete the migration.
@@ -115,6 +116,16 @@ The final step is to re-activate your repositories. At this time it is safe to s
 
 ```
 $ docker run -e [...] drone/migrate activate-repos
+```
+
+## Final Check
+
+The migration is not considered complete until all steps are completed and the below sql query returns an empty result set.  If the below query returns an empty result set you may need to execute `remove-renamed` and `remove-not-found` migration steps, or you may need to perform some manual data cleanup.
+
+```text
+SELECT *
+FROM repos
+WHERE repo_uid LIKE 'temp_%'
 ```
 
 # Execution Individual Commands
