@@ -120,7 +120,7 @@ $ docker run -e [...] drone/migrate activate-repos
 
 ## Final Check
 
-The migration is not considered complete until all steps are completed and the below sql query returns an empty result set.  If the below query returns an empty result set you may need to execute `remove-renamed` and `remove-not-found` migration steps, or you may need to perform some manual data cleanup.
+The migration is not considered complete until all steps are completed and the below sql query returns an empty result set.  If the below query does not return an empty result set you should execute the `remove-renamed` and `remove-not-found` migration steps.
 
 ```text
 SELECT *
