@@ -16,7 +16,7 @@ docker pull drone/migrate
 
 ## Configuring the migration utility
 
-The migration utility will copy data from your 0.8.x database to your new 1.0.x database. You will need to provide the migration tool with the connection string for both the old and new database.
+The migration utility will copy data from your 0.8.x database to your new _empty_ 1.0.x database. You will need to provide the migration tool with the connection string for both the old and new database.
 
 ```sh
 -e SOURCE_DATABASE_DRIVER=sqlite3|mysql|postgres
@@ -78,6 +78,7 @@ If you are using Bitbucket Cloud, configure the Bitbucket driver:
 
 # Full Migration
 
+Run the below migration steps to copy your data from your 0.8 database to your 1.x database. _Running the below commands will not have any impact on your existing 0.8 database._
 
 ```
 $ docker run -e [...] drone/migrate setup-database
@@ -110,6 +111,9 @@ The final step is to re-activate your repositories. At this time it is safe to s
 ```
 $ docker run -e [...] drone/migrate activate-repos
 ```
+
+_The above command should only be executed once you are ready to finalize your migration.  When you execute this command it may replace any webhooks created by your 0.8 instance with webhooks that point to your 1.x instance._
+
 
 ## Final Check
 
