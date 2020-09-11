@@ -198,8 +198,7 @@ func selectCompleted(db *sql.DB) (map[string]struct{}, error) {
 
 var migrationTableCreate = `
 CREATE TABLE IF NOT EXISTS migrations (
- name VARCHAR(255)
-,UNIQUE(name)
+ name VARCHAR(255) PRIMARY KEY AUTO_INCREMENT
 )
 `
 
