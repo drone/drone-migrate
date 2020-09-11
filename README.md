@@ -90,6 +90,8 @@ $ docker run -e [...] drone/migrate migrate-stages
 $ docker run -e [...] drone/migrate migrate-steps
 $ docker run -e [...] drone/migrate migrate-logs
 $ docker run -e [...] drone/migrate update-repos
+$ docker run -e [...] drone/migrate remove-renamed
+$ docker run -e [...] drone/migrate remove-not-found
 ```
 
 ## Optional Encryption
@@ -99,17 +101,6 @@ You can also optionally [configure](https://docs.drone.io/server/storage/encrypt
 ```
 $ export TARGET_DATABASE_ENCRYPTION_KEY=....
 $ docker run -e [...] -e drone-drone/migrate encrypt-secrets
-```
-
-## Optional Cleanup
-
-_This should be run before the final step_
-
-You may optionally run the following commands to purge repositories from the 1.0 database where the repository no longer exists, the repository owner no longer has access, or where the repository has been renamed.
-
-```
-$ docker run -e [...] drone/migrate remove-renamed
-$ docker run -e [...] drone/migrate remove-not-found
 ```
 
 ## Final Migration Step
